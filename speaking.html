@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="vi">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Luyện nói tiếng Anh</title>
+    <link rel="stylesheet" href="css/style.css" />
+    <style>
+      .hint {
+        font-weight: bold;
+        font-size: 20px;
+        margin-bottom: 15px;
+      }
+      #result {
+        margin-top: 20px;
+      }
+      #micStatus {
+        font-style: italic;
+        color: gray;
+      }
+    </style>
+  </head>
+  <body>
+    <button
+      onclick="location.href='index.html'"
+      style="position: absolute; top: 10px; left: 10px"
+    >
+      🏠 Home
+    </button>
+
+    <h1>🎤 Luyện nói tiếng Anh</h1>
+
+    <div id="questionContainer"></div>
+    <button id="speakBtn">🎙️ Bắt đầu nói</button>
+    <p id="micStatus"></p>
+
+    <div id="result"></div>
+    <button id="speakAgainBtn">🔊 Đọc lại</button>
+    <span id="readCounter">Còn lại: 3 lần</span>
+
+    <button id="nextBtn" style="display: none; margin-top: 20px">
+      ➡️ Câu tiếp theo
+    </button>
+
+    <script type="module" src="js/speaking.js"></script>
+
+    <script type="module">
+      import { initUserWidget } from "./js/user-widget.js";
+      initUserWidget();
+    </script>
+  </body>
+</html>

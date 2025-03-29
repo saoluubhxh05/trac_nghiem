@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="vi">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Chọn bài trắc nghiệm</title>
+    <link rel="stylesheet" href="css/style.css" />
+  </head>
+  <body>
+    <button
+      onclick="location.href='index.html'"
+      style="position: absolute; top: 10px; left: 10px"
+    >
+      🏠 Home
+    </button>
+
+    <h1>📝 Chọn bài trắc nghiệm</h1>
+
+    <label for="monHoc">Môn học:</label>
+    <select id="monHoc"></select>
+
+    <label for="loai">Loại:</label>
+    <select id="loai"></select>
+    <br />
+
+    <label>Loại bài tập:</label>
+    <br />
+    <div id="loaiBaiTapContainer" style="margin-bottom: 16px">
+      <label><input type="checkbox" value="quiz" /> Trắc nghiệm 4 đáp án</label
+      ><br />
+      <label><input type="checkbox" value="matching" /> Ghép câu - đáp án</label
+      ><br />
+      <label><input type="checkbox" value="speaking" /> Luyện nói</label><br />
+      <label><input type="checkbox" value="spelling" /> Luyện chính tả</label>
+    </div>
+
+    <label>Chủ đề:</label>
+    <div
+      id="chuDeContainer"
+      style="
+        max-height: 150px;
+        overflow-y: auto;
+        border: 1px solid #ccc;
+        padding: 8px;
+      "
+    ></div>
+    <br />
+
+    <label for="thuTu">Thứ tự hiển thị:</label>
+    <select id="thuTu">
+      <option value="theothutu">Theo thứ tự</option>
+      <option value="ngaunhien">Ngẫu nhiên</option></select
+    ><br /><br />
+
+    <button id="batDauBtn">🚀 Bắt đầu làm bài</button>
+
+    <script src="js/select.js"></script>
+    <script type="module">
+      import { initUserWidget } from "./js/user-widget.js";
+      initUserWidget();
+    </script>
+  </body>
+</html>

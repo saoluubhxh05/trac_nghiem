@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="vi">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Trắc nghiệm 4 đáp án</title>
+    <link rel="stylesheet" href="css/style.css" />
+    <style>
+      .dap-an {
+        margin: 10px 0;
+        padding: 10px;
+        border: 1px solid #ccc;
+        cursor: pointer;
+        border-radius: 5px;
+      }
+      .dap-an:hover {
+        background-color: #f0f0f0;
+      }
+      .dap-an.dung {
+        background-color: #c8f7c5;
+        border-color: green;
+      }
+      .dap-an.sai {
+        background-color: #f7c5c5;
+        border-color: red;
+      }
+    </style>
+  </head>
+  <body>
+    <button
+      onclick="location.href='index.html'"
+      style="position: absolute; top: 10px; left: 10px"
+    >
+      🏠 Home
+    </button>
+
+    <h1>🧠 Trắc nghiệm 4 đáp án</h1>
+
+    <div id="questionContainer" style="margin-bottom: 30px"></div>
+
+    <button id="speakAgainBtn" style="display: none">🔊 Nghe lại đáp án</button>
+    <button id="toggleMuteBtn">🔊 Đang bật tiếng</button>
+
+    <br /><br />
+    <button id="nextBtn" style="display: none">➡️ Câu tiếp theo</button>
+
+    <script type="module" src="js/quiz.js"></script>
+  </body>
+</html>

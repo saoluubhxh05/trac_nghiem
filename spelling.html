@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="vi">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Luyện chính tả</title>
+    <link rel="stylesheet" href="css/style.css" />
+    <style>
+      input[type="text"] {
+        width: 80%;
+        padding: 10px;
+        font-size: 16px;
+      }
+      #result {
+        margin-top: 20px;
+      }
+    </style>
+  </head>
+  <body>
+    <button
+      onclick="location.href='index.html'"
+      style="position: absolute; top: 10px; left: 10px"
+    >
+      🏠 Home
+    </button>
+
+    <h1>✍️ Luyện chính tả tiếng Anh</h1>
+
+    <div id="questionContainer"></div>
+    <button id="playAudioBtn">🔊 Nghe lại</button><br /><br />
+
+    <input
+      type="text"
+      id="answerInput"
+      placeholder="Nhập câu bạn vừa nghe..."
+    />
+    <button id="submitBtn">✅ Kiểm tra</button>
+
+    <div id="result"></div>
+    <button id="nextBtn" style="display: none">➡️ Câu tiếp theo</button>
+
+    <script type="module" src="js/spelling.js"></script>
+
+    <script type="module">
+      import { initUserWidget } from "./js/user-widget.js";
+      initUserWidget();
+    </script>
+  </body>
+</html>

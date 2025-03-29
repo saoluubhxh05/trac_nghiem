@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="vi">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Ghép câu hỏi với đáp án</title>
+    <link rel="stylesheet" href="css/style.css" />
+    <style>
+      .container {
+        display: flex;
+        justify-content: center;
+        gap: 50px;
+        margin-top: 30px;
+      }
+      .col {
+        width: 45%;
+      }
+      .item {
+        padding: 10px;
+        margin: 8px 0;
+        border: 1px solid #ccc;
+        border-radius: 6px;
+        cursor: pointer;
+        background-color: white;
+      }
+      .item:hover {
+        background-color: #f2f2f2;
+      }
+      .selected {
+        border: 2px solid blue;
+      }
+      .correct {
+        background-color: #c8f7c5;
+        border-color: green;
+        pointer-events: none;
+      }
+      .wrong {
+        background-color: #f7c5c5;
+        border-color: red;
+      }
+    </style>
+  </head>
+  <!-- phần body -->
+  <body>
+    <button
+      onclick="location.href='index.html'"
+      style="position: absolute; top: 10px; left: 10px"
+    >
+      🏠 Home
+    </button>
+    <h1 style="text-align: center">🧩 Ghép câu hỏi với đáp án đúng</h1>
+
+    <div class="container">
+      <div class="col" id="questionCol">
+        <h3>Câu trắc nghiệm</h3>
+      </div>
+      <div class="col" id="answerCol">
+        <h3>Đáp án</h3>
+      </div>
+    </div>
+
+    <div style="text-align: center; margin-top: 30px">
+      <button id="finishBtn">✅ Hoàn thành</button>
+      <button onclick="location.href='select-quiz.html'">
+        🔙 Quay lại lựa chọn
+      </button>
+      <p id="resultMsg" style="font-weight: bold; margin-top: 10px"></p>
+    </div>
+
+    <script type="module" src="js/matching.js"></script>
+  </body>
+</html>

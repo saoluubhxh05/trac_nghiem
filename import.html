@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="vi">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Import câu hỏi trắc nghiệm</title>
+    <link rel="stylesheet" href="css/style.css" />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+  </head>
+  <body>
+    <button
+      onclick="location.href='index.html'"
+      style="position: absolute; top: 10px; left: 10px"
+    >
+      🏠 Home
+    </button>
+    <h1>📥 Nhập File Excel Câu Hỏi</h1>
+
+    <input type="file" id="excelFile" />
+    <button id="importBtn">📤 Import dữ liệu</button>
+    <button id="deleteDataBtn" style="background-color: red; color: white">
+      🗑️ XÓA TẤT CẢ DỮ LIỆU
+    </button>
+
+    <hr />
+    <h2>📊 Dữ liệu đã nhập:</h2>
+    <p id="soLuongCau">Tổng số câu:</p>
+
+    <table id="bangDuLieu" border="1" cellpadding="5" cellspacing="0">
+      <thead>
+        <tr>
+          <th>STT</th>
+          <th>Môn học</th>
+          <th>Loại</th>
+          <th>Chủ đề</th>
+          <th>Câu hỏi</th>
+          <th>Đáp án đúng</th>
+          <th>PA1</th>
+          <th>PA2</th>
+          <th>PA3</th>
+          <th>PA4</th>
+          <th>Hình ảnh</th>
+        </tr>
+      </thead>
+      <tbody></tbody>
+    </table>
+
+    <script type="module" src="js/import.js"></script>
+  </body>
+</html>

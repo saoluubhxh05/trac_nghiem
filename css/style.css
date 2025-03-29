@@ -1,0 +1,99 @@
+.list-container {
+  display: flex;
+  gap: 40px;
+  margin-top: 20px;
+}
+.column {
+  width: 45%;
+}
+.item {
+  padding: 10px;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  margin-bottom: 8px;
+  cursor: pointer;
+}
+.selected {
+  background-color: #d0ebff;
+}
+.correct {
+  background-color: #c8f7c5;
+}
+.wrong {
+  background-color: #f7c5c5;
+}
+#user-widget img:hover {
+  outline: 2px solid #2980b9;
+}
+button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+body {
+  font-family: Arial, sans-serif;
+  padding: 20px;
+  background-color: #f9f9f9;
+}
+
+h1 {
+  text-align: center;
+  margin-bottom: 30px;
+}
+
+.flex-container {
+  display: flex;
+  justify-content: center;
+  gap: 50px;
+  align-items: flex-start;
+  flex-wrap: wrap;
+  margin-top: 20px;
+}
+
+/* Cột trái & phải */
+.flex-container > div {
+  background: white;
+  border: 1px solid #ccc;
+  border-radius: 10px;
+  padding: 20px;
+  flex: 1;
+  min-width: 320px;
+  max-width: 500px;
+  box-shadow: 0 0 8px rgba(0, 0, 0, 0.05);
+}
+
+/* Nút bấm */
+button {
+  padding: 10px 20px;
+  background-color: #007bff;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 16px;
+}
+
+button:hover {
+  background-color: #0056b3;
+}
+
+/* Nút đỏ */
+button[style*="red"] {
+  background-color: #dc3545 !important;
+}
+
+button[style*="red"]:hover {
+  background-color: #a71d2a !important;
+}
+
+/* Select & Input */
+select,
+input[type="number"] {
+  padding: 6px;
+  font-size: 14px;
+  margin-top: 4px;
+  margin-bottom: 10px;
+  width: 100%;
+  max-width: 300px;
+  border-radius: 4px;
+  border: 1px solid #ccc;
+}
