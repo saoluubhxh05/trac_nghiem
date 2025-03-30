@@ -105,8 +105,12 @@ input[type="number"] {
 
 /* Responsive adjustments */
 @media (max-width: 768px) {
-  .column {
-    max-width: 100%;
+  html {
+    font-size: 16px;
+  }
+
+  body {
+    padding: 10px;
   }
 
   h1 {
@@ -115,8 +119,14 @@ input[type="number"] {
 
   button {
     width: 100%;
-    font-size: 16px;
+    font-size: 1rem;
     margin-top: 8px;
+  }
+
+  select,
+  input[type="number"] {
+    font-size: 1rem;
+    width: 100%;
   }
 
   .flex-container {
@@ -126,5 +136,26 @@ input[type="number"] {
 
   .flex-container > div {
     max-width: 100%;
+  }
+
+  .column {
+    max-width: 100%;
+  }
+
+  .item {
+    font-size: 1rem;
+  }
+}
+
+/* Mobile-specific for very small screens */
+@media (max-width: 480px) {
+  h1 {
+    font-size: 20px;
+  }
+  button {
+    font-size: 0.95rem;
+  }
+  .item {
+    font-size: 0.95rem;
   }
 }

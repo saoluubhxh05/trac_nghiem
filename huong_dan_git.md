@@ -30,10 +30,8 @@ git branch -M main
 git push -u origin main
 
 3.cập nhật git
-//Thêm toàn bộ file vừa chỉnh sửa //Ghi chú cập nhật vào lịch sử
+//Thêm toàn bộ file vừa chỉnh sửa //Ghi chú cập nhật vào lịch sử //Gửi toàn bộ thay đổi lên GitHub
+
 git add .
-
-git commit -m "🔄 Cập nhật: lưu dữ liệu import theo tài khoản + hiển thị tên người dùng"
-
-//Gửi toàn bộ thay đổi lên GitHub
+git commit -m "Cập nhật"
 git push
