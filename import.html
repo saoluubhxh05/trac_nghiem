@@ -13,18 +13,22 @@
     >
       🏠 Home
     </button>
+
+    <div id="user-info" style="position: fixed; top: 10px; right: 20px">
+      <span id="user-name"></span>
+      <button id="logoutBtn" style="margin-left: 10px">Đăng xuất</button>
+    </div>
+
     <h1>📥 Nhập File Excel Câu Hỏi</h1>
 
     <input type="file" id="excelFile" />
     <button id="importBtn">📤 Import dữ liệu</button>
     <button id="deleteDataBtn" style="background-color: red; color: white">
-      🗑️ XÓA TẤT CẢ DỮ LIỆU
+      🗑️ XÓA TẤT CẢ DỮ LIỆU CỦA BẠN
     </button>
 
     <hr />
     <h2>📊 Dữ liệu đã nhập:</h2>
-    <p id="soLuongCau">Tổng số câu:</p>
-
     <table id="bangDuLieu" border="1" cellpadding="5" cellspacing="0">
       <thead>
         <tr>
