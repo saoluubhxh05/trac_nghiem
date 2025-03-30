@@ -1,5 +1,28 @@
-window.addEventListener("DOMContentLoaded", () => {
-  document.getElementById("importBtn").addEventListener("click", () => {
+// js/import.js
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+import {
+  getFirestore,
+  collection,
+  addDoc,
+  deleteDoc,
+  getDocs,
+  doc,
+} from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyBvNfpf4KQeJw9fuDkTyXdoDY3LEuUL1fc",
+  authDomain: "abcd-9d83a.firebaseapp.com",
+  projectId: "abcd-9d83a",
+  storageBucket: "abcd-9d83a.appspot.com",
+  messagingSenderId: "380338460918",
+  appId: "1:380338460918:web:d1b1d7c9bc40471ded34d7",
+};
+
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+
+document.addEventListener("DOMContentLoaded", () => {
+  document.getElementById("importBtn").addEventListener("click", async () => {
     const fileInput = document.getElementById("excelFile");
     const file = fileInput.files[0];
 
@@ -9,8 +32,7 @@ window.addEventListener("DOMContentLoaded", () => {
     }
 
     const reader = new FileReader();
-
-    reader.onload = function (e) {
+    reader.onload = async function (e) {
       const data = new Uint8Array(e.target.result);
       const workbook = XLSX.read(data, { type: "array" });
       const sheet = workbook.Sheets[workbook.SheetNames[0]];
@@ -29,25 +51,50 @@ window.addEventListener("DOMContentLoaded", () => {
         tenAnh: row["tenAnh"] || "",
       }));
 
-      localStorage.setItem("questions", JSON.stringify(questions));
-      alert("✅ Import thành công! Tổng số câu hỏi: " + questions.length);
+      // Xóa toàn bộ trước khi import
+      const snapshot = await getDocs(collection(db, "questions"));
+      await Promise.all(
+        snapshot.docs.map((docSnap) =>
+          deleteDoc(doc(db, "questions", docSnap.id))
+        )
+      );
+
+      // Thêm mới
+      await Promise.all(
+        questions.map((q) => addDoc(collection(db, "questions"), q))
+      );
+
+      alert("✅ Đã lưu lên Firebase! Tổng số câu hỏi: " + questions.length);
       window.location.reload();
     };
 
     reader.readAsArrayBuffer(file);
   });
 
-  // Hiển thị dữ liệu đã import
-  const data = localStorage.getItem("questions");
-  if (data) {
-    const questions = JSON.parse(data);
-    document.getElementById(
-      "soLuongCau"
-    ).textContent = `Tổng số câu: ${questions.length}`;
+  // Nút xóa thủ công
+  document
+    .getElementById("deleteDataBtn")
+    .addEventListener("click", async () => {
+      if (confirm("Bạn có chắc chắn muốn xóa toàn bộ dữ liệu đã import?")) {
+        const snapshot = await getDocs(collection(db, "questions"));
+        await Promise.all(
+          snapshot.docs.map((docSnap) =>
+            deleteDoc(doc(db, "questions", docSnap.id))
+          )
+        );
+        alert("✅ Đã xóa toàn bộ dữ liệu trên Firebase.");
+        window.location.reload();
+      }
+    });
 
-    const tbody = document.querySelector("#bangDuLieu tbody");
+  // Hiển thị dữ liệu từ Firebase
+  const tbody = document.querySelector("#bangDuLieu tbody");
+  const soLuongSpan = document.getElementById("soLuongCau");
+
+  getDocs(collection(db, "questions")).then((snapshot) => {
+    const questions = snapshot.docs.map((doc) => doc.data());
+    soLuongSpan.textContent = `Tổng số câu: ${questions.length}`;
     tbody.innerHTML = "";
-
     questions.forEach((item, index) => {
       const row = document.createElement("tr");
       row.innerHTML = `
@@ -65,13 +112,5 @@ window.addEventListener("DOMContentLoaded", () => {
       `;
       tbody.appendChild(row);
     });
-  }
-
-  // Nút xóa dữ liệu
-  document.getElementById("deleteDataBtn").addEventListener("click", () => {
-    if (confirm("Bạn có chắc chắn muốn xóa toàn bộ dữ liệu đã import?")) {
-      localStorage.removeItem("questions");
-      window.location.reload();
-    }
   });
 });

@@ -1,11 +1,33 @@
-document.addEventListener("DOMContentLoaded", () => {
-  const raw = localStorage.getItem("questions");
-  if (!raw) {
-    alert("Chưa có dữ liệu. Vui lòng import trước.");
+// js/select.js
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+import {
+  getFirestore,
+  collection,
+  getDocs,
+} from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyBvNfpf4KQeJw9fuDkTyXdoDY3LEuUL1fc",
+  authDomain: "abcd-9d83a.firebaseapp.com",
+  projectId: "abcd-9d83a",
+  storageBucket: "abcd-9d83a.appspot.com",
+  messagingSenderId: "380338460918",
+  appId: "1:380338460918:web:d1b1d7c9bc40471ded34d7",
+};
+
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+
+document.addEventListener("DOMContentLoaded", async () => {
+  const snapshot = await getDocs(collection(db, "questions"));
+  const questions = snapshot.docs.map((doc) => doc.data());
+  window.questions = questions;
+
+  if (!questions.length) {
+    alert("Không có dữ liệu câu hỏi! Vui lòng import trước.");
     return;
   }
 
-  window.questions = JSON.parse(raw);
   const monHocSelect = document.getElementById("monHoc");
   const loaiSelect = document.getElementById("loai");
 
@@ -18,17 +40,12 @@ document.addEventListener("DOMContentLoaded", () => {
     monHocSelect.appendChild(opt);
   });
 
-  // Cập nhật danh sách loại theo môn học
   function updateLoaiSelect(monHoc) {
     loaiSelect.innerHTML = "";
-
     const loaiSet = new Set();
     questions.forEach((q) => {
-      if (q.monHoc === monHoc) {
-        loaiSet.add(q.loai);
-      }
+      if (q.monHoc === monHoc) loaiSet.add(q.loai);
     });
-
     [...loaiSet].forEach((l) => {
       const opt = document.createElement("option");
       opt.value = opt.textContent = l;
@@ -37,7 +54,6 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   const saved = JSON.parse(localStorage.getItem("quizSettings") || "{}");
-
   const initialMonHoc = saved.monHoc || monHocSelect.options[0]?.value;
   if (initialMonHoc) {
     monHocSelect.value = initialMonHoc;
@@ -48,13 +64,11 @@ document.addEventListener("DOMContentLoaded", () => {
   if (saved.thuTu) document.getElementById("thuTu").value = saved.thuTu;
 
   monHocSelect.addEventListener("change", () => {
-    const selectedMonHoc = monHocSelect.value;
-    updateLoaiSelect(selectedMonHoc);
+    updateLoaiSelect(monHocSelect.value);
     renderChuDeTheoBoLoc();
   });
 
   loaiSelect.addEventListener("change", renderChuDeTheoBoLoc);
-
   renderChuDeTheoBoLoc();
 
   setTimeout(() => {
@@ -91,7 +105,7 @@ document.addEventListener("DOMContentLoaded", () => {
       "#loaiBaiTapContainer input:checked"
     );
     const loaiBaiTapList = Array.from(loaiBaiTapEls).map((el) => el.value);
-    if (loaiBaiTapList.length === 0) {
+    if (!loaiBaiTapList.length) {
       alert("Vui lòng chọn ít nhất 1 loại bài tập.");
       return;
     }
@@ -99,7 +113,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const chuDeCheckboxes = document.querySelectorAll(
       ".chu-de-checkbox:checked"
     );
-    if (chuDeCheckboxes.length === 0) {
+    if (!chuDeCheckboxes.length) {
       alert("Vui lòng chọn ít nhất 1 chủ đề!");
       return;
     }
@@ -120,7 +134,6 @@ document.addEventListener("DOMContentLoaded", () => {
     localStorage.setItem("quizSettings", JSON.stringify(savedSettings));
 
     let selectedQuestions = [];
-
     chuDeCheckboxes.forEach((chk) => {
       const chuDe = chk.value;
       const input =
@@ -138,7 +151,7 @@ document.addEventListener("DOMContentLoaded", () => {
       selectedQuestions = selectedQuestions.concat(filtered.slice(0, soCau));
     });
 
-    if (selectedQuestions.length === 0) {
+    if (!selectedQuestions.length) {
       alert("Không tìm thấy câu hỏi phù hợp.");
       return;
     }
