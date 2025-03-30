@@ -2,22 +2,42 @@
 <html lang="vi">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Trang Chủ</title>
-    <link rel="stylesheet" href="style.css" />
+    <title>Trang chủ</title>
+    <link rel="stylesheet" href="css/style.css" />
+    <style>
+      #userInfo {
+        display: flex;
+        align-items: center;
+        gap: 20px;
+        margin-bottom: 20px;
+      }
+      img {
+        border-radius: 50%;
+        width: 80px;
+        height: 80px;
+      }
+      #stats {
+        margin-top: 20px;
+      }
+    </style>
   </head>
   <body>
-    <div class="container">
-      <h1>Ứng Dụng Trắc Nghiệm</h1>
+    <h1>🏠 Trang chủ</h1>
 
-      <button onclick="window.location.href='import.html'">
-        Import Câu Hỏi
-      </button>
-      <button onclick="window.location.href='select-quiz.html'">
-        Làm Bài Trắc Nghiệm
-      </button>
+    <div id="userInfo"></div>
+
+    <div id="stats">
+      <p><strong>Bài đã hoàn thành:</strong> <span id="completed">0</span></p>
+      <p><strong>Tổng điểm:</strong> <span id="totalScore">0</span></p>
     </div>
 
-    <script src="js/main.js"></script>
+    <button onclick="location.href='import.html'">📥 Import câu hỏi</button>
+    <button onclick="location.href='select-quiz.html'">
+      📝 Bắt đầu làm bài
+    </button>
+    <script type="module">
+      import { initFirebaseAuth } from "./js/firebase.js";
+      initFirebaseAuth();
+    </script>
   </body>
 </html>

@@ -1,125 +1,77 @@
-import {
-  db,
-  auth,
-  provider,
-  signOut,
-  onAuthStateChanged,
-  signInWithPopup,
-  collection,
-  addDoc,
-  deleteDoc,
-  getDocs,
-  doc,
-  query,
-  where,
-} from "./firebase.js";
+window.addEventListener("DOMContentLoaded", () => {
+  document.getElementById("importBtn").addEventListener("click", () => {
+    const fileInput = document.getElementById("excelFile");
+    const file = fileInput.files[0];
 
-let currentUser = null;
+    if (!file) {
+      alert("Vui lòng chọn file Excel.");
+      return;
+    }
 
-// Theo dõi trạng thái đăng nhập
-onAuthStateChanged(auth, (user) => {
-  if (user) {
-    currentUser = user;
-    const userName = user.displayName || user.email;
-    document.getElementById("user-name").textContent = `👤 ${userName}`;
-  } else {
-    signInWithPopup(auth, provider)
-      .then((result) => {
-        currentUser = result.user;
-        const userName = currentUser.displayName || currentUser.email;
-        document.getElementById("user-name").textContent = `👤 ${userName}`;
-      })
-      .catch((error) => {
-        alert("Lỗi đăng nhập Google");
-        console.error(error);
-      });
-  }
-});
+    const reader = new FileReader();
 
-document.getElementById("logoutBtn").addEventListener("click", () => {
-  signOut(auth).then(() => {
-    alert("Đã đăng xuất");
-    window.location.reload();
-  });
-});
+    reader.onload = function (e) {
+      const data = new Uint8Array(e.target.result);
+      const workbook = XLSX.read(data, { type: "array" });
+      const sheet = workbook.Sheets[workbook.SheetNames[0]];
+      const json = XLSX.utils.sheet_to_json(sheet, { defval: "" });
 
-// Hàm lưu câu hỏi vào Firestore
-async function luuCauHoiVaoFirebase(cauHoi) {
-  if (!currentUser) return;
-  await addDoc(collection(db, "cauHoi"), {
-    ...cauHoi,
-    uid: currentUser.uid,
-  });
-}
-
-// Nhập Excel và lưu dữ liệu
-document.getElementById("importBtn").addEventListener("click", async () => {
-  const file = document.getElementById("excelFile").files[0];
-  if (!file) return alert("Vui lòng chọn file Excel");
-
-  const reader = new FileReader();
-  reader.onload = async (e) => {
-    const data = new Uint8Array(e.target.result);
-    const workbook = XLSX.read(data, { type: "array" });
-    const sheet = workbook.Sheets[workbook.SheetNames[0]];
-    const rows = XLSX.utils.sheet_to_json(sheet);
-    let index = 1;
-
-    for (let row of rows) {
-      const cauHoi = {
+      const questions = json.map((row) => ({
         monHoc: row["Môn học"],
         loai: row["Loại"],
         chuDe: row["Chủ đề"],
-        cauHoi: row["Câu hỏi"],
+        cauHoi: row["Câu trắc nghiệm"] || row["Dịch sang tiếng Việt Câu hỏi"],
+        phuongAn1: row["Phương án 1"] || row["Các phương án"]?.split("#")[0],
+        phuongAn2: row["Phương án 2"] || row["Các phương án"]?.split("#")[1],
+        phuongAn3: row["Phương án 3"] || row["Các phương án"]?.split("#")[2],
+        phuongAn4: row["Phương án 4"] || row["Các phương án"]?.split("#")[3],
         dapAn: row["Đáp án đúng"],
-        pa1: row["PA1"],
-        pa2: row["PA2"],
-        pa3: row["PA3"],
-        pa4: row["PA4"],
-        hinhAnh: row["Hình ảnh"] || "",
-      };
-      await luuCauHoiVaoFirebase(cauHoi);
+        tenAnh: row["tenAnh"] || "",
+      }));
 
-      // Hiển thị trên bảng
-      const tr = document.createElement("tr");
-      tr.innerHTML = `
-        <td>${index++}</td>
-        <td>${cauHoi.monHoc}</td>
-        <td>${cauHoi.loai}</td>
-        <td>${cauHoi.chuDe}</td>
-        <td>${cauHoi.cauHoi}</td>
-        <td>${cauHoi.dapAn}</td>
-        <td>${cauHoi.pa1}</td>
-        <td>${cauHoi.pa2}</td>
-        <td>${cauHoi.pa3}</td>
-        <td>${cauHoi.pa4}</td>
-        <td>${cauHoi.hinhAnh}</td>
+      localStorage.setItem("questions", JSON.stringify(questions));
+      alert("✅ Import thành công! Tổng số câu hỏi: " + questions.length);
+      window.location.reload();
+    };
+
+    reader.readAsArrayBuffer(file);
+  });
+
+  // Hiển thị dữ liệu đã import
+  const data = localStorage.getItem("questions");
+  if (data) {
+    const questions = JSON.parse(data);
+    document.getElementById(
+      "soLuongCau"
+    ).textContent = `Tổng số câu: ${questions.length}`;
+
+    const tbody = document.querySelector("#bangDuLieu tbody");
+    tbody.innerHTML = "";
+
+    questions.forEach((item, index) => {
+      const row = document.createElement("tr");
+      row.innerHTML = `
+        <td>${index + 1}</td>
+        <td>${item.monHoc}</td>
+        <td>${item.loai}</td>
+        <td>${item.chuDe}</td>
+        <td>${item.cauHoi}</td>
+        <td>${item.dapAn}</td>
+        <td>${item.phuongAn1}</td>
+        <td>${item.phuongAn2}</td>
+        <td>${item.phuongAn3}</td>
+        <td>${item.phuongAn4}</td>
+        <td>${item.tenAnh}</td>
       `;
-      document.querySelector("#bangDuLieu tbody").appendChild(tr);
+      tbody.appendChild(row);
+    });
+  }
+
+  // Nút xóa dữ liệu
+  document.getElementById("deleteDataBtn").addEventListener("click", () => {
+    if (confirm("Bạn có chắc chắn muốn xóa toàn bộ dữ liệu đã import?")) {
+      localStorage.removeItem("questions");
+      window.location.reload();
     }
-
-    alert("✅ Import và lưu Firebase thành công!");
-  };
-
-  reader.readAsArrayBuffer(file);
-});
-
-// XÓA DỮ LIỆU FIREBASE CỦA NGƯỜI DÙNG
-document.getElementById("deleteDataBtn").addEventListener("click", async () => {
-  if (!currentUser) return alert("Bạn cần đăng nhập trước");
-  const confirmDelete = confirm(
-    "Bạn có chắc chắn muốn xóa toàn bộ dữ liệu của bạn?"
-  );
-  if (!confirmDelete) return;
-
-  const cauHoiRef = collection(db, "cauHoi");
-  const q = query(cauHoiRef, where("uid", "==", currentUser.uid));
-  const snapshot = await getDocs(q);
-  const promises = snapshot.docs.map((docu) =>
-    deleteDoc(doc(db, "cauHoi", docu.id))
-  );
-  await Promise.all(promises);
-
-  alert("✅ Đã xóa dữ liệu của bạn!");
-  document.querySelector("#bangDuLieu tbody").innerHTML = "";
+  });
 });
