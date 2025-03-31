@@ -3,21 +3,41 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Import Câu Hỏi Excel vào Firebase</title>
+    <title>Import Excel vào Firebase</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <script type="module" src="import1.js"></script>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        padding: 20px;
+      }
+      input,
+      button {
+        margin: 10px 0;
+        padding: 8px;
+        font-size: 16px;
+      }
+      table {
+        border-collapse: collapse;
+        width: 100%;
+        margin-top: 20px;
+      }
+      th,
+      td {
+        border: 1px solid #ccc;
+        padding: 8px;
+        text-align: left;
+      }
+    </style>
   </head>
   <body>
-    <button
-      onclick="location.href='index.html'"
-      style="position: absolute; top: 10px; left: 10px"
-    >
-      🏠 Home
-    </button>
-    <h1>🧠 Import File Excel vào Firestore</h1>
+    <h1>📥 Import Excel vào Firebase</h1>
     <input type="file" id="excelFile" accept=".xlsx" />
-    <button id="importBtn">📥 Import dữ liệu</button>
-
-    <p id="status"></p>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
-    <script type="module" src="./import1.js"></script>
+    <br />
+    <button id="importBtn">Import dữ liệu</button>
+    <table id="previewTable">
+      <thead></thead>
+      <tbody></tbody>
+    </table>
   </body>
 </html>
