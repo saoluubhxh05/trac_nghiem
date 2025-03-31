@@ -35,3 +35,4 @@ git push -u origin main
 git add .
 git commit -m "Cập nhật"
 git push
+firebase deploy
