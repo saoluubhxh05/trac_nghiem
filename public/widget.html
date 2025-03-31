@@ -1,0 +1,61 @@
+
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>CapyWidget</title>
+  <link rel="manifest" href="manifest.json" />
+  <meta name="theme-color" content="#ffffff" />
+  <style>
+    body {
+      margin: 0;
+      padding: 0;
+      background: #fffbe6;
+      font-family: "Segoe UI", sans-serif;
+      text-align: center;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+    }
+    img {
+      width: 60%;
+      max-width: 300px;
+      margin-bottom: 20px;
+    }
+    .status {
+      font-size: 1.5rem;
+      color: #444;
+    }
+    .tap {
+      margin-top: 20px;
+      color: #888;
+      font-size: 0.9rem;
+    }
+  </style>
+</head>
+<body onclick="location.href='index.html'">
+  <img id="emoImg" src="images/emotion/happy.png" alt="Cảm xúc Capybara" />
+  <div class="status" id="statusText">Bạn đang chăm chỉ! 😊</div>
+  <div class="tap">👉 Chạm để vào luyện tập</div>
+
+  <script>
+    const last = localStorage.getItem("lastDoneDate");
+    let days = 10;
+    if (last) {
+      const diff = new Date() - new Date(last);
+      days = Math.floor(diff / (1000 * 60 * 60 * 24));
+    }
+
+    let emo = "dead.png", text = "☠️ Lâu rồi chưa học!";
+    if (days === 0) { emo = "happy.png"; text = "Bạn đang chăm chỉ! 😊"; }
+    else if (days <= 2) { emo = "sad.png"; text = "Cố lên nào! 😕"; }
+    else if (days <= 5) { emo = "cry.png"; text = "Quay lại học nhé 😢"; }
+
+    document.getElementById("emoImg").src = `images/emotion/${emo}`;
+    document.getElementById("statusText").textContent = text + ` (${days} ngày)`;
+  </script>
+</body>
+</html>

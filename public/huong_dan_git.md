@@ -29,14 +29,6 @@ git commit -m "Lần đầu up toàn bộ phần mềm trắc nghiệm lên GitH
 git branch -M main
 git push -u origin main
 
-3.cập nhật git
-//Thêm toàn bộ file vừa chỉnh sửa //Ghi chú cập nhật vào lịch sử //Gửi toàn bộ thay đổi lên GitHub
-
-git add .
-git commit -m "Cập nhật"
-git push
-firebase deploy
-
 4.phải tạo cấu trúc đúng mới deploy web chạy được
 trac_nghiem3/
 ├── firebase.json
@@ -62,3 +54,11 @@ trac_nghiem3/
 │ │ └── style.css ⬅️ nếu có
 │ ├── images/
 │ └── [ảnh minh hoạ] ⬅️ nếu có
+
+3.cập nhật git
+//Thêm toàn bộ file vừa chỉnh sửa //Ghi chú cập nhật vào lịch sử //Gửi toàn bộ thay đổi lên GitHub
+
+git add .
+git commit -m "Cập nhật"
+git push
+firebase deploy
