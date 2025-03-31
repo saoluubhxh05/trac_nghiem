@@ -36,3 +36,29 @@ git add .
 git commit -m "Cập nhật"
 git push
 firebase deploy
+
+4.phải tạo cấu trúc đúng mới deploy web chạy được
+trac_nghiem3/
+├── firebase.json
+├── .firebaserc
+├── public/
+│ ├── index.html
+│ ├── select-quiz.html
+│ ├── quiz.html
+│ ├── matching.html
+│ ├── speaking.html
+│ ├── spelling.html
+│ ├── import.html
+│ ├── js/
+│ │ ├── select.js
+│ │ ├── quiz.js
+│ │ ├── matching.js
+│ │ ├── speaking.js
+│ │ ├── spelling.js
+│ │ ├── navigation.js
+│ │ ├── image-util.js
+│ │ └── speech-util.js
+│ ├── css/
+│ │ └── style.css ⬅️ nếu có
+│ ├── images/
+│ └── [ảnh minh hoạ] ⬅️ nếu có

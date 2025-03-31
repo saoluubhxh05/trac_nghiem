@@ -3,6 +3,8 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="manifest" href="manifest.json" />
+    <meta name="theme-color" content="#4CAF50" />
 
     <title>Trang chủ</title>
     <link rel="stylesheet" href="css/style.css" />
@@ -41,6 +43,45 @@
     <script type="module">
       import { initFirebaseAuth } from "./js/firebase.js";
       initFirebaseAuth();
+    </script>
+    <script>
+      if ("serviceWorker" in navigator) {
+        navigator.serviceWorker.register("service-worker.js");
+      }
+    </script>
+    <script>
+      function tinhSoNgayBoQua() {
+        const last = localStorage.getItem("lastDoneDate");
+        if (!last) return 10;
+
+        const lastDate = new Date(last);
+        const now = new Date();
+        const diffTime = now - lastDate;
+        const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+        return Math.min(diffDays, 10);
+      }
+
+      function layAnhEmotion(ngay) {
+        if (ngay === 0) return "images/emotion/happy.svg";
+        if (ngay <= 2) return "images/emotion/sad1.svg";
+        if (ngay <= 5) return "images/emotion/cry.svg";
+        return "images/emotion/dead.svg";
+      }
+
+      const days = tinhSoNgayBoQua();
+      const img = document.createElement("img");
+      img.src = layAnhEmotion(days);
+      img.alt = `Biểu cảm sau ${days} ngày bỏ bài`;
+      img.style.width = "100px";
+      img.style.height = "100px";
+      img.title = `${days} ngày không làm bài`;
+
+      const emoText = document.createElement("p");
+      emoText.innerHTML = `<strong>Chuỗi bỏ bài:</strong> ${days} ngày`;
+
+      const userInfoDiv = document.getElementById("userInfo");
+      userInfoDiv.appendChild(img);
+      userInfoDiv.appendChild(emoText);
     </script>
   </body>
 </html>
