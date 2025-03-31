@@ -63,13 +63,15 @@ document.addEventListener("DOMContentLoaded", async () => {
   if (saved.loai) loaiSelect.value = saved.loai;
   if (saved.thuTu) document.getElementById("thuTu").value = saved.thuTu;
 
+  // ✅ Quan trọng: render chủ đề ngay sau khi dữ liệu có sẵn
+  renderChuDeTheoBoLoc();
+
   monHocSelect.addEventListener("change", () => {
     updateLoaiSelect(monHocSelect.value);
     renderChuDeTheoBoLoc();
   });
 
   loaiSelect.addEventListener("change", renderChuDeTheoBoLoc);
-  renderChuDeTheoBoLoc();
 
   setTimeout(() => {
     if (saved.chuDe) {
@@ -184,7 +186,7 @@ function renderChuDeTheoBoLoc() {
 
   const chuDeMap = new Map();
 
-  questions.forEach((q) => {
+  window.questions.forEach((q) => {
     if (q.monHoc === monHoc && q.loai === loai) {
       chuDeMap.set(q.chuDe, (chuDeMap.get(q.chuDe) || 0) + 1);
     }
