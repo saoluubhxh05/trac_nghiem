@@ -1,4 +1,4 @@
-// import.js
+// import1.js
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
 import {
   getFirestore,
@@ -6,7 +6,7 @@ import {
   addDoc,
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
-// Cấu hình Firebase của bạn
+// Cấu hình Firebase
 const firebaseConfig = {
   apiKey: "AIzaSyBvNfpf4KQeJw9fuDkTyXdoDY3LEuUL1fc",
   authDomain: "abcd-9d83a.firebaseapp.com",
@@ -36,8 +36,17 @@ document.getElementById("importBtn").addEventListener("click", async () => {
     const sheet = workbook.Sheets[workbook.SheetNames[0]];
     const rows = XLSX.utils.sheet_to_json(sheet, { defval: "" });
 
+    console.log("📄 Dữ liệu Excel đã đọc:", rows);
+
+    if (!rows.length) {
+      status.innerText =
+        "❌ File Excel không có dữ liệu hoặc sai định dạng cột.";
+      return;
+    }
+
     status.innerText = `⏳ Đang import ${rows.length} dòng...`;
 
+    let count = 0;
     for (const row of rows) {
       const docData = {
         monHoc: row["Môn học"],
@@ -52,14 +61,17 @@ document.getElementById("importBtn").addEventListener("click", async () => {
         tenAnh: row["Hình ảnh"],
       };
 
+      console.log(`👉 Dòng ${count + 1}:`, docData);
+
       try {
         await addDoc(collection(db, "questions"), docData);
+        count++;
       } catch (err) {
-        console.error("❌ Lỗi khi lưu dòng:", row, err);
+        console.error(`❌ Lỗi tại dòng ${count + 1}:`, err);
       }
     }
 
-    status.innerText = `✅ Đã import ${rows.length} dòng thành công vào Firestore.`;
+    status.innerText = `✅ Đã import ${count} / ${rows.length} dòng thành công vào Firestore.`;
   };
 
   reader.readAsArrayBuffer(file);
