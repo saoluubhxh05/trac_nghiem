@@ -63,7 +63,4 @@ git commit -m "Cập nhật"
 git push
 firebase deploy
 
-Làm mới lại toàn bộ trang web:
-Trên máy tính: Nhấn Ctrl + Shift + R (hoặc Cmd + Shift + R trên Mac) để xóa cache và tải lại.
-
-Trên điện thoại: Thoát Chrome → Mở lại → Load lại index.html
+thêm 1 trang html, file js có tính năng hiện ra câu đáp án đúng , ẩn 1 số chữ ngẫu nhiên, các từ điền vào được để dưới câu có thứ tự ngẫu nhiên. Bấm chọn từ bấm chọn khoảng trống để chọn đúng nếu đúng tô màu xanh, không đúng tô đỏ
