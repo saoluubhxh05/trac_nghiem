@@ -3,9 +3,6 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <link rel="manifest" href="manifest.json" />
-    <meta name="theme-color" content="#4CAF50" />
-
     <title>Trang chủ</title>
     <link rel="stylesheet" href="css/style.css" />
     <style>
@@ -26,7 +23,7 @@
     </style>
   </head>
   <body>
-    <h1>🏠 Trang chủ</h1>
+    <h1>🏠 <span style="color: black">Trang chủ</span></h1>
 
     <div id="userInfo"></div>
 
@@ -36,19 +33,15 @@
     </div>
 
     <button onclick="location.href='import.html'">📥 Import câu hỏi</button>
-
     <button onclick="location.href='select-quiz.html'">
       📝 Bắt đầu làm bài
     </button>
+
     <script type="module">
       import { initFirebaseAuth } from "./js/firebase.js";
       initFirebaseAuth();
     </script>
-    <script>
-      if ("serviceWorker" in navigator) {
-        navigator.serviceWorker.register("service-worker.js");
-      }
-    </script>
+
     <script>
       function tinhSoNgayBoQua() {
         const last = localStorage.getItem("lastDoneDate");
@@ -72,16 +65,14 @@
       const img = document.createElement("img");
       img.src = layAnhEmotion(days);
       img.alt = `Biểu cảm sau ${days} ngày bỏ bài`;
-      img.style.width = "100px";
-      img.style.height = "100px";
-      img.title = `${days} ngày không làm bài`;
+      img.title = img.alt;
 
-      const emoText = document.createElement("p");
-      emoText.innerHTML = `<strong>Chuỗi bỏ bài:</strong> ${days} ngày`;
+      const text = document.createElement("p");
+      text.innerHTML = `<strong>Chuỗi bỏ bài:</strong> ${days} ngày`;
 
-      const userInfoDiv = document.getElementById("userInfo");
-      userInfoDiv.appendChild(img);
-      userInfoDiv.appendChild(emoText);
+      const userInfo = document.getElementById("userInfo");
+      userInfo.appendChild(img);
+      userInfo.appendChild(text);
     </script>
   </body>
 </html>
