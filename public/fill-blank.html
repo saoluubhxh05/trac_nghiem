@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="vi">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Điền từ vào chỗ trống</title>
+    <link rel="stylesheet" href="css/style.css" />
+    <style>
+      .question-block {
+        margin-bottom: 30px;
+        padding: 15px;
+        border: 1px solid #ccc;
+        border-radius: 8px;
+        background: #f9f9f9;
+      }
+      .blank {
+        display: inline-block;
+        min-width: 60px;
+        padding: 4px 8px;
+        margin: 0 4px;
+        border-bottom: 2px solid black;
+        cursor: pointer;
+      }
+      .word-bank span {
+        display: inline-block;
+        margin: 6px;
+        padding: 6px 10px;
+        border: 1px solid #999;
+        border-radius: 6px;
+        background-color: #f0f0f0;
+        cursor: pointer;
+      }
+      .blank.correct {
+        background-color: #c8f7c5;
+      }
+      .blank.wrong {
+        background-color: #f7c5c5;
+      }
+    </style>
+  </head>
+  <body>
+    <button
+      onclick="location.href='index.html'"
+      style="position: absolute; top: 10px; left: 10px"
+    >
+      🏠 Home
+    </button>
+    <h1>🧩 Điền từ vào chỗ trống</h1>
+
+    <div id="allQuestions"></div>
+
+    <script type="module" src="js/fill-blank.js"></script>
+  </body>
+</html>
