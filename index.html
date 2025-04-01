@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="vi">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+    <title>Trang chủ</title>
+    <link rel="stylesheet" href="css/style.css" />
+    <style>
+      #userInfo {
+        display: flex;
+        align-items: center;
+        gap: 20px;
+        margin-bottom: 20px;
+      }
+      img {
+        border-radius: 50%;
+        width: 80px;
+        height: 80px;
+      }
+      #stats {
+        margin-top: 20px;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>🏠 Trang chủ</h1>
+
+    <div id="userInfo"></div>
+
+    <div id="stats">
+      <p><strong>Bài đã hoàn thành:</strong> <span id="completed">0</span></p>
+      <p><strong>Tổng điểm:</strong> <span id="totalScore">0</span></p>
+    </div>
+
+    <button onclick="location.href='import.html'">📥 Import câu hỏi</button>
+
+    <button onclick="location.href='select-quiz.html'">
+      📝 Bắt đầu làm bài
+    </button>
+    <script type="module">
+      import { initFirebaseAuth } from "./js/firebase.js";
+      initFirebaseAuth();
+    </script>
+  </body>
+</html>

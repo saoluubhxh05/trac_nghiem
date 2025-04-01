@@ -74,6 +74,8 @@ function handleSelect(el) {
 }
 
 finishBtn.addEventListener("click", () => {
+  localStorage.setItem("lastDoneDate", new Date().toISOString());
+
   const total = pairs.length;
   const correct = correctPairs.size;
   resultMsg.textContent = `🎉 Bạn đã ghép đúng ${correct}/${total} câu.`;

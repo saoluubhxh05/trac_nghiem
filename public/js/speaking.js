@@ -184,6 +184,8 @@ nextBtn.addEventListener("click", () => {
     renderQuestion();
   } else {
     questionContainer.innerHTML = `<h2>✅ Hoàn thành bài luyện nói!</h2>`;
+  localStorage.setItem("lastDoneDate", new Date().toISOString());
+
     speakBtn.style.display = "none";
     nextBtn.style.display = "none";
     speakAgainBtn.style.display = "none";

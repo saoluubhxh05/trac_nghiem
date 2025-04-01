@@ -130,6 +130,8 @@ nextBtn.addEventListener("click", () => {
     renderQuestion();
   } else {
     qContainer.innerHTML = `<h2>✅ Bạn đã hoàn thành phần luyện chính tả!</h2>`;
+  localStorage.setItem("lastDoneDate", new Date().toISOString());
+
     input.style.display = "none";
     submitBtn.style.display = "none";
     playBtn.style.display = "none";
