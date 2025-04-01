@@ -74,7 +74,7 @@ function handleSelect(el) {
 }
 
 finishBtn.addEventListener("click", () => {
-  localStorage.setItem("lastDoneDate", new Date().toISOString());
+  // localStorage.setItem("lastDoneDate", new Date().toISOString());
 
   const total = pairs.length;
   const correct = correctPairs.size;
@@ -82,4 +82,6 @@ finishBtn.addEventListener("click", () => {
 
   // Tạo nút chuyển bài tiếp theo sau khi nhấn hoàn thành
   taoNutBaiTiepTheo(resultMsg.parentElement);
+  // ✅ Cập nhật thời gian hoàn thành
+  localStorage.setItem("lastDoneDate", new Date().toISOString());
 });

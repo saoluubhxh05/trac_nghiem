@@ -62,3 +62,8 @@ git add .
 git commit -m "Cập nhật"
 git push
 firebase deploy
+
+Làm mới lại toàn bộ trang web:
+Trên máy tính: Nhấn Ctrl + Shift + R (hoặc Cmd + Shift + R trên Mac) để xóa cache và tải lại.
+
+Trên điện thoại: Thoát Chrome → Mở lại → Load lại index.html

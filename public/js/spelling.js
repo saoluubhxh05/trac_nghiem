@@ -130,7 +130,7 @@ nextBtn.addEventListener("click", () => {
     renderQuestion();
   } else {
     qContainer.innerHTML = `<h2>✅ Bạn đã hoàn thành phần luyện chính tả!</h2>`;
-  localStorage.setItem("lastDoneDate", new Date().toISOString());
+   // localStorage.setItem("lastDoneDate", new Date().toISOString());
 
     input.style.display = "none";
     submitBtn.style.display = "none";
@@ -141,6 +141,8 @@ nextBtn.addEventListener("click", () => {
 
     // ✅ Thêm nút chuyển bài tiếp theo
     taoNutBaiTiepTheo(qContainer);
+    // ✅ Cập nhật thời gian hoàn thành
+    localStorage.setItem("lastDoneDate", new Date().toISOString());
   }
 });
 

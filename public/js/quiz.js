@@ -90,8 +90,6 @@ nextBtn.addEventListener("click", () => {
 });
 
 function showResult() {
-  localStorage.setItem("lastDoneDate", new Date().toISOString());
-
   container.innerHTML = `
     <h2>🎉 Hoàn thành!</h2>
     <p>Số câu đúng: <strong>${correctCount}</strong> / ${questions.length}</p>
@@ -99,6 +97,7 @@ function showResult() {
   speakAgainBtn.style.display = "none";
   toggleMuteBtn.style.display = "none";
   taoNutBaiTiepTheo(container);
+  localStorage.setItem("lastDoneDate", new Date().toISOString());
 }
 
 updateMuteButton();

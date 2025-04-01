@@ -184,7 +184,7 @@ nextBtn.addEventListener("click", () => {
     renderQuestion();
   } else {
     questionContainer.innerHTML = `<h2>✅ Hoàn thành bài luyện nói!</h2>`;
-  localStorage.setItem("lastDoneDate", new Date().toISOString());
+    // localStorage.setItem("lastDoneDate", new Date().toISOString());
 
     speakBtn.style.display = "none";
     nextBtn.style.display = "none";
@@ -193,6 +193,8 @@ nextBtn.addEventListener("click", () => {
 
     // ✅ Thêm nút chuyển bài tiếp theo
     taoNutBaiTiepTheo(questionContainer);
+    // ✅ Cập nhật thời gian hoàn thành
+    localStorage.setItem("lastDoneDate", new Date().toISOString());
   }
 });
 
