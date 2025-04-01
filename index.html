@@ -42,5 +42,39 @@
       import { initFirebaseAuth } from "./js/firebase.js";
       initFirebaseAuth();
     </script>
+    <script>
+      function tinhSoNgayBoQua() {
+        const last = localStorage.getItem("lastDoneDate");
+        if (!last) return 10;
+
+        const lastDate = new Date(last);
+        const now = new Date();
+        const diffTime = now - lastDate;
+        const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+        return Math.min(diffDays, 10);
+      }
+
+      function layAnhEmotion(ngay) {
+        if (ngay === 0) return "images/emotion/happy.png";
+        if (ngay <= 2) return "images/emotion/sad.png";
+        if (ngay <= 5) return "images/emotion/cry.png";
+        return "images/emotion/dead.png";
+      }
+
+      const days = tinhSoNgayBoQua();
+      const img = document.createElement("img");
+      img.src = layAnhEmotion(days);
+      img.alt = `Biểu cảm sau ${days} ngày bỏ bài`;
+      img.style.width = "80px";
+      img.style.height = "80px";
+      img.style.borderRadius = "50%";
+
+      const text = document.createElement("p");
+      text.innerHTML = `<strong>Chuỗi bỏ bài:</strong> ${days} ngày`;
+
+      const userInfo = document.getElementById("userInfo");
+      userInfo.appendChild(img);
+      userInfo.appendChild(text);
+    </script>
   </body>
 </html>
