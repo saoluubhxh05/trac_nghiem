@@ -142,9 +142,18 @@ document.addEventListener("DOMContentLoaded", async () => {
         chk.parentElement.parentElement.querySelector(".so-cau-input");
       const soCau = parseInt(input.value);
 
-      let filtered = questions.filter(
-        (q) => q.monHoc === monHoc && q.loai === loai && q.chuDe === chuDe
-      );
+      let filtered;
+      if (loaiBaiTapList.includes("combo")) {
+        // Nếu là combo thì lấy tất cả các loại câu hỏi thuộc chủ đề
+        filtered = questions.filter(
+          (q) => q.monHoc === monHoc && q.chuDe === chuDe
+        );
+      } else {
+        // Nếu không phải combo thì lọc theo môn + loại + chủ đề
+        filtered = questions.filter(
+          (q) => q.monHoc === monHoc && q.loai === loai && q.chuDe === chuDe
+        );
+      }
 
       if (thuTu === "ngaunhien") {
         filtered = shuffleArray(filtered);
