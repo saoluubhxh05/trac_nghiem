@@ -30,6 +30,22 @@ function renderCurrentStep() {
   else renderSpelling();
 }
 
+function taoNutChuyenBai() {
+  const btn = document.createElement("button");
+  btn.id = "nextStepBtn"; // Gán id để kiểm tra trùng
+  btn.textContent = "➡️ Chuyển sang phần tiếp theo";
+  btn.style.marginTop = "20px";
+  btn.style.padding = "10px 20px";
+  btn.style.fontSize = "16px";
+  btn.style.borderRadius = "8px";
+  btn.style.cursor = "pointer";
+  btn.onclick = () => {
+    step++;
+    renderCurrentStep();
+  };
+  container.appendChild(btn);
+}
+
 function renderFillBlank() {
   const q = questions[currentIndex];
   const words = q.dapAn.trim().split(" ");
@@ -99,8 +115,7 @@ function renderFillBlank() {
       });
 
       if (remaining.length === 0) {
-        step = 1;
-        setTimeout(renderCurrentStep, 500);
+        taoNutChuyenBai();
       }
     };
   });
@@ -156,9 +171,11 @@ function hienThiKetQuaNoi(q, finalTranscript) {
     document.getElementById(
       "scoreLine"
     ).innerHTML = `<strong>💯 Độ khớp:</strong> ${newPercent}%`;
-    if (newPercent >= 50) {
-      step = 2;
-      setTimeout(renderCurrentStep, 1000);
+
+    if (newPercent >= 80) {
+      if (!document.getElementById("nextStepBtn")) {
+        taoNutChuyenBai();
+      }
     }
   };
 }
@@ -286,14 +303,29 @@ function renderSpelling() {
       <p><strong>🎯 Độ khớp:</strong> ${percent}%</p>
     `;
 
-    if (percent >= 50) {
-      currentIndex++;
-      step = 0;
-      if (currentIndex < questions.length) {
-        setTimeout(renderCurrentStep, 1000);
-      } else {
-        container.innerHTML = `<h2>✅ Bạn đã hoàn thành bài tập Combo!</h2>`;
-        taoNutBaiTiepTheo(container);
+    if (percent >= 80) {
+      const nextBtn = document.createElement("button");
+      nextBtn.textContent = "➡️ Chuyển sang câu tiếp theo";
+      nextBtn.id = "nextStepBtn";
+      nextBtn.style.marginTop = "20px";
+      nextBtn.style.padding = "10px 20px";
+      nextBtn.style.fontSize = "16px";
+      nextBtn.style.borderRadius = "8px";
+      nextBtn.style.cursor = "pointer";
+
+      nextBtn.onclick = () => {
+        currentIndex++;
+        step = 0;
+        if (currentIndex < questions.length) {
+          renderCurrentStep();
+        } else {
+          container.innerHTML = `<h2>✅ Bạn đã hoàn thành bài tập Combo!</h2>`;
+          taoNutBaiTiepTheo(container);
+        }
+      };
+
+      if (!document.getElementById("nextStepBtn")) {
+        container.appendChild(nextBtn);
       }
     }
   };
