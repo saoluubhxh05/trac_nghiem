@@ -18,7 +18,11 @@ const firebaseConfig = {
   measurementId: "G-R1694J34HS",
 };
 
-const app = initializeApp(firebaseConfig);
+import { getApps } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+
+const app =
+  getApps().length === 0 ? initializeApp(firebaseConfig) : getApps()[0];
+
 const auth = getAuth(app);
 const provider = new GoogleAuthProvider();
 
