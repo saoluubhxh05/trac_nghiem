@@ -1,5 +1,8 @@
 // js/firebase.js
-import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+import {
+  initializeApp,
+  getApps,
+} from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
 import {
   getAuth,
   GoogleAuthProvider,
@@ -18,8 +21,7 @@ const firebaseConfig = {
   measurementId: "G-R1694J34HS",
 };
 
-import { getApps } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-
+// 👉 Chỉ khởi tạo Firebase 1 lần
 const app =
   getApps().length === 0 ? initializeApp(firebaseConfig) : getApps()[0];
 
