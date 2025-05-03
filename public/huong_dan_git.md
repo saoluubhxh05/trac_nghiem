@@ -60,7 +60,7 @@ trac_nghiem3/
 
 git add .
 git commit -m "Cập nhật"
-git push
+git push --force
 firebase deploy
 
 thêm 1 trang html, file js có tính năng hiện ra câu đáp án đúng , ẩn 1 số chữ ngẫu nhiên, các từ điền vào được để dưới câu có thứ tự ngẫu nhiên. Bấm chọn từ bấm chọn khoảng trống để chọn đúng nếu đúng tô màu xanh, không đúng tô đỏ
