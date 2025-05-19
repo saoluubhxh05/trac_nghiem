@@ -12,6 +12,7 @@ const defaultTime = parseInt(localStorage.getItem("translateTime")) || 30;
 let currentIndex = 0;
 let recognition;
 let timerInterval;
+let accumulatedMatched = [];
 
 function normalize(text) {
   return text
@@ -23,23 +24,32 @@ function normalize(text) {
 function compareWords(userText, answer) {
   const userWords = normalize(userText).split(" ");
   const answerWords = normalize(answer).split(" ");
+  const revealed = [];
   let correct = 0;
-  const revealed = answerWords.map((w) => {
-    if (userWords.includes(w)) {
+
+  answerWords.forEach((w, i) => {
+    if (accumulatedMatched[i] === w || userWords.includes(w)) {
+      accumulatedMatched[i] = w;
+      revealed.push(w);
       correct++;
-      return w;
+    } else {
+      revealed.push("___");
     }
-    return "___";
   });
+
   const percent = Math.round((correct / answerWords.length) * 100);
-  return { revealed: revealed.join(" "), percent };
+  return {
+    revealed: revealed.join(" "),
+    percent,
+    accumulated: accumulatedMatched.map((w) => w || "___").join(" "),
+  };
 }
 
 function startSpeechRecognition(onResult) {
   const SpeechRecognition =
     window.SpeechRecognition || window.webkitSpeechRecognition;
   if (!SpeechRecognition) {
-    alert("Trình duyệt không hỗ trợ ghi âm.");
+    alert("⚠️ Trình duyệt không hỗ trợ ghi âm!");
     return;
   }
 
@@ -53,7 +63,8 @@ function startSpeechRecognition(onResult) {
   };
 
   recognition.onerror = () => {
-    alert("Lỗi nhận diện giọng nói. Vui lòng thử lại.");
+    alert("❌ Lỗi nhận diện giọng nói.");
+    speakBtn.disabled = false;
   };
 
   recognition.start();
@@ -79,13 +90,18 @@ function renderQuestion(q, index) {
   const match = document.createElement("div");
   match.className = "match-result";
 
+  const accumulatedLine = document.createElement("div");
+  accumulatedLine.className = "match-result";
+
   const controls = document.createElement("div");
   controls.className = "controls";
 
   const speakBtn = document.createElement("button");
   speakBtn.textContent = "🎙️ Bắt đầu nói";
+
   const replayBtn = document.createElement("button");
   replayBtn.textContent = "🔊 Đọc lại";
+
   const nextBtn = document.createElement("button");
   nextBtn.textContent = "➡️ Câu tiếp theo";
   nextBtn.disabled = true;
@@ -98,12 +114,16 @@ function renderQuestion(q, index) {
   block.appendChild(timer);
   block.appendChild(spoken);
   block.appendChild(match);
+  block.appendChild(accumulatedLine);
   block.appendChild(controls);
 
   container.appendChild(block);
 
   let secondsLeft = defaultTime;
   let finished = false;
+
+  const answerWords = normalize(q.dapAn).split(" ");
+  accumulatedMatched = new Array(answerWords.length).fill("");
 
   function resetTimer() {
     clearInterval(timerInterval);
@@ -121,6 +141,9 @@ function renderQuestion(q, index) {
           alert("⏳ Hết giờ! Hãy thử lại.");
           spoken.innerHTML = `<strong>Bạn nói:</strong> `;
           match.innerHTML = "";
+          accumulatedLine.innerHTML = `<strong>Đáp án tích lũy:</strong> ${accumulatedMatched
+            .map((w) => w || "___")
+            .join(" ")}`;
           nextBtn.disabled = true;
           speakBtn.disabled = false;
         }
@@ -137,6 +160,7 @@ function renderQuestion(q, index) {
       spoken.innerHTML = `<strong>Bạn nói:</strong> "${userSpeech}"`;
       const result = compareWords(userSpeech, q.dapAn);
       match.innerHTML = `<strong>✅ Đúng:</strong> ${result.revealed}<br>🎯 <strong>Độ khớp:</strong> ${result.percent}%`;
+      accumulatedLine.innerHTML = `<strong>Đáp án tích lũy:</strong> ${result.accumulated}`;
 
       if (result.percent >= 80) {
         clearInterval(timerInterval);
@@ -163,8 +187,7 @@ function renderQuestion(q, index) {
     }
   };
 
-  // render lần đầu tiên
-  speakBtn.click();
+  speakBtn.click(); // tự động bắt đầu khi vào
 }
 
 renderQuestion(questions[currentIndex], currentIndex);
