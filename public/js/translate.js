@@ -168,7 +168,7 @@ function renderQuestion(q, index) {
       match.innerHTML = `<strong>✅ Đúng:</strong> ${result.revealed}<br>🎯 <strong>Độ khớp:</strong> ${result.percent}%`;
       accumulatedLine.innerHTML = `<strong>Đáp án tích lũy:</strong> ${result.accumulated}`;
 
-      if (result.percent >= 80) {
+      if (result.percent >= 70) {
         clearInterval(timerInterval);
         nextBtn.disabled = false;
         replayBtn.disabled = false;
