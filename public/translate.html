@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="vi">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Luyện dịch</title>
+    <link rel="stylesheet" href="css/style.css" />
+    <style>
+      .question-block {
+        margin-bottom: 40px;
+        padding: 20px;
+        border: 1px solid #ccc;
+        border-radius: 10px;
+        background: #f9f9f9;
+      }
+      .translate-box {
+        font-size: 1.2rem;
+        margin-bottom: 10px;
+      }
+      .spoken-result {
+        font-size: 1rem;
+        margin-top: 10px;
+        color: #555;
+      }
+      .match-result {
+        font-weight: bold;
+        margin-top: 10px;
+      }
+      #timer {
+        font-size: 1.3rem;
+        color: red;
+        margin-bottom: 10px;
+      }
+      .controls button {
+        margin-right: 10px;
+      }
+    </style>
+  </head>
+  <body>
+    <button
+      onclick="location.href='index.html'"
+      style="position: absolute; top: 10px; left: 10px"
+    >
+      🏠 Home
+    </button>
+    <h1>🔁 Luyện dịch</h1>
+    <div id="translateContainer"></div>
+
+    <script type="module" src="js/translate.js"></script>
+  </body>
+</html>

@@ -1,4 +1,3 @@
-// js/select.js
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
 import {
   getFirestore,
@@ -33,7 +32,6 @@ document.addEventListener("DOMContentLoaded", async () => {
 
   const monHocSet = new Set();
   questions.forEach((q) => monHocSet.add(q.monHoc));
-
   [...monHocSet].forEach((mh) => {
     const opt = document.createElement("option");
     opt.value = opt.textContent = mh;
@@ -63,7 +61,6 @@ document.addEventListener("DOMContentLoaded", async () => {
   if (saved.loai) loaiSelect.value = saved.loai;
   if (saved.thuTu) document.getElementById("thuTu").value = saved.thuTu;
 
-  // ✅ Quan trọng: render chủ đề ngay sau khi dữ liệu có sẵn
   renderChuDeTheoBoLoc();
 
   monHocSelect.addEventListener("change", () => {
@@ -144,12 +141,10 @@ document.addEventListener("DOMContentLoaded", async () => {
 
       let filtered;
       if (loaiBaiTapList.includes("combo")) {
-        // Nếu là combo thì lấy tất cả các loại câu hỏi thuộc chủ đề
         filtered = questions.filter(
           (q) => q.monHoc === monHoc && q.chuDe === chuDe
         );
       } else {
-        // Nếu không phải combo thì lọc theo môn + loại + chủ đề
         filtered = questions.filter(
           (q) => q.monHoc === monHoc && q.loai === loai && q.chuDe === chuDe
         );
@@ -174,6 +169,13 @@ document.addEventListener("DOMContentLoaded", async () => {
       JSON.stringify(selectedQuestions)
     );
 
+    // ✅ Lưu thời gian mỗi câu cho bài tập "Luyện dịch"
+    const translateTimeInput = document.getElementById("translateTime");
+    if (translateTimeInput) {
+      localStorage.setItem("translateTime", translateTimeInput.value);
+    }
+
+    // ✅ Điều hướng
     window.location.href = `${loaiBaiTapList[0]}.html`;
   });
 });
