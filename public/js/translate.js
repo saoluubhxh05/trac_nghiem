@@ -49,7 +49,7 @@ function startSpeechRecognition(onResult) {
   const SpeechRecognition =
     window.SpeechRecognition || window.webkitSpeechRecognition;
   if (!SpeechRecognition) {
-    alert("⚠️ Trình duyệt không hỗ trợ ghi âm!");
+    alert("⚠️ Trình duyệt không hỗ trợ nhận diện giọng nói!");
     return;
   }
 
@@ -101,6 +101,8 @@ function renderQuestion(q, index) {
 
   const replayBtn = document.createElement("button");
   replayBtn.textContent = "🔊 Đọc lại";
+  replayBtn.disabled = true;
+  replayBtn.style.opacity = "0.5";
 
   const nextBtn = document.createElement("button");
   nextBtn.textContent = "➡️ Câu tiếp theo";
@@ -131,7 +133,7 @@ function renderQuestion(q, index) {
     timer.textContent = `⏱️ ${secondsLeft}s`;
   }
 
-  function startTimer(onTimeout) {
+  function startTimer() {
     timerInterval = setInterval(() => {
       secondsLeft--;
       timer.textContent = `⏱️ ${secondsLeft}s`;
@@ -146,24 +148,22 @@ function renderQuestion(q, index) {
             .join(" ")}`;
           nextBtn.disabled = true;
           speakBtn.disabled = false;
+          replayBtn.disabled = true;
+          replayBtn.style.opacity = "0.5";
         }
       }
     }, 1000);
   }
 
   speakBtn.onclick = () => {
-    clearInterval(timerInterval); // 🔧 Dừng timer cũ nếu có
-
     speakBtn.disabled = true;
     replayBtn.disabled = true;
     replayBtn.style.opacity = "0.5";
 
-    resetTimer(); // reset về defaultTime
-    startTimer(); // bắt đầu lại timer mới
+    // KHÔNG reset hoặc startTimer ở đây – timer chạy duy nhất 1 lần
 
     startSpeechRecognition((userSpeech) => {
       spoken.innerHTML = `<strong>Bạn nói:</strong> "${userSpeech}"`;
-
       const result = compareWords(userSpeech, q.dapAn);
       match.innerHTML = `<strong>✅ Đúng:</strong> ${result.revealed}<br>🎯 <strong>Độ khớp:</strong> ${result.percent}%`;
       accumulatedLine.innerHTML = `<strong>Đáp án tích lũy:</strong> ${result.accumulated}`;
@@ -176,8 +176,6 @@ function renderQuestion(q, index) {
         finished = true;
       } else {
         speakBtn.disabled = false;
-        replayBtn.disabled = true;
-        replayBtn.style.opacity = "0.5";
       }
     });
   };
@@ -197,7 +195,9 @@ function renderQuestion(q, index) {
     }
   };
 
-  speakBtn.click(); // tự động bắt đầu khi vào
+  // Gọi 1 lần duy nhất khi load câu
+  resetTimer();
+  startTimer();
+  speakBtn.click();
 }
-
 renderQuestion(questions[currentIndex], currentIndex);
