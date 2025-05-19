@@ -48,10 +48,14 @@ document.addEventListener("DOMContentLoaded", () => {
         loai: row["Loại"],
         chuDe: row["Chủ đề"],
         cauHoi: row["Câu trắc nghiệm"] || row["Dịch sang tiếng Việt Câu hỏi"],
-        phuongAn1: row["Phương án 1"] || row["Các phương án"]?.split("#")[0],
-        phuongAn2: row["Phương án 2"] || row["Các phương án"]?.split("#")[1],
-        phuongAn3: row["Phương án 3"] || row["Các phương án"]?.split("#")[2],
-        phuongAn4: row["Phương án 4"] || row["Các phương án"]?.split("#")[3],
+        phuongAn1:
+          row["Phương án 1"] || "" || row["Các phương án"]?.split("#")[0],
+        phuongAn2:
+          row["Phương án 2"] || "" || row["Các phương án"]?.split("#")[1],
+        phuongAn3:
+          row["Phương án 3"] || "" || row["Các phương án"]?.split("#")[2],
+        phuongAn4:
+          row["Phương án 4"] || "" || row["Các phương án"]?.split("#")[3],
         dapAn: row["Đáp án đúng"],
         tenAnh: row["tenAnh"] || "",
       }));
@@ -68,6 +72,8 @@ document.addEventListener("DOMContentLoaded", () => {
 
       // Gửi lên Firebase
       const questionsCollection = collection(db, "questions");
+      console.log("📤 Dữ liệu sẽ ghi vào Firestore:", questions);
+
       await Promise.all(
         questions.map(async (q, index) => {
           try {
