@@ -196,12 +196,12 @@ function renderChuDeTheoBoLoc() {
   chuDeContainer.innerHTML = "";
 
   const chuDeMap = new Map();
-
-  window.questions.forEach((q) => {
-    if (q.monHoc === monHoc && q.loai === loai) {
+  window.questions
+    .filter((q) => q.monHoc === monHoc && q.loai === loai)
+    .sort((a, b) => (a.stt || 0) - (b.stt || 0)) // ✅ Sắp xếp theo STT
+    .forEach((q) => {
       chuDeMap.set(q.chuDe, (chuDeMap.get(q.chuDe) || 0) + 1);
-    }
-  });
+    });
 
   if (chuDeMap.size === 0) {
     chuDeContainer.innerHTML = `<p style="color:red;">❌ Không có chủ đề nào phù hợp với môn "${monHoc}" và loại "${loai}".</p>`;
