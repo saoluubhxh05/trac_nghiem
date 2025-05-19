@@ -108,14 +108,8 @@ function renderQuestion(q, index) {
   nextBtn.textContent = "➡️ Câu tiếp theo";
   nextBtn.disabled = true;
 
-  const helpBtn = document.createElement("button");
-  helpBtn.textContent = "🔍 Trợ giúp";
-  helpBtn.disabled = true;
-  helpBtn.style.opacity = "0.5";
-
   controls.appendChild(speakBtn);
   controls.appendChild(replayBtn);
-  controls.appendChild(helpBtn);
   controls.appendChild(nextBtn);
 
   block.appendChild(vi);
@@ -129,7 +123,6 @@ function renderQuestion(q, index) {
 
   let secondsLeft = defaultTime;
   let finished = false;
-  let troGiupUsed = false;
 
   const answerWords = normalize(q.dapAn).split(" ");
   accumulatedMatched = new Array(answerWords.length).fill("");
@@ -157,8 +150,6 @@ function renderQuestion(q, index) {
           speakBtn.disabled = false;
           replayBtn.disabled = true;
           replayBtn.style.opacity = "0.5";
-          helpBtn.disabled = true;
-          helpBtn.style.opacity = "0.5";
         }
       }
     }, 1000);
@@ -168,8 +159,8 @@ function renderQuestion(q, index) {
     speakBtn.disabled = true;
     replayBtn.disabled = true;
     replayBtn.style.opacity = "0.5";
-    helpBtn.disabled = true;
-    helpBtn.style.opacity = "0.5";
+
+    // KHÔNG reset hoặc startTimer ở đây – timer chạy duy nhất 1 lần
 
     startSpeechRecognition((userSpeech) => {
       spoken.innerHTML = `<strong>Bạn nói:</strong> "${userSpeech}"`;
@@ -182,16 +173,11 @@ function renderQuestion(q, index) {
         nextBtn.disabled = false;
         replayBtn.disabled = false;
         replayBtn.style.opacity = "1";
-        helpBtn.disabled = true;
-        helpBtn.style.opacity = "0.5";
         finished = true;
-
+        // 👉 Thêm dòng này để hiển thị đáp án hoàn chỉnh:
         const fullAnswer = document.createElement("div");
         fullAnswer.innerHTML = `<strong>📌 Đáp án đúng:</strong> ${q.dapAn}`;
         block.appendChild(fullAnswer);
-      } else if (result.percent >= 50 && !troGiupUsed) {
-        helpBtn.disabled = false;
-        helpBtn.style.opacity = "1";
       } else {
         speakBtn.disabled = false;
       }
@@ -200,22 +186,6 @@ function renderQuestion(q, index) {
 
   replayBtn.onclick = () => {
     speak(q.dapAn);
-  };
-
-  helpBtn.onclick = () => {
-    const answerWords = normalize(q.dapAn).split(" ");
-    for (let i = 0; i < answerWords.length; i++) {
-      if (!accumulatedMatched[i]) {
-        accumulatedMatched[i] = answerWords[i];
-        break;
-      }
-    }
-
-    const updated = accumulatedMatched.map((w) => w || "___").join(" ");
-    accumulatedLine.innerHTML = `<strong>Đáp án tích lũy:</strong> ${updated}`;
-    troGiupUsed = true;
-    helpBtn.disabled = true;
-    helpBtn.style.opacity = "0.5";
   };
 
   nextBtn.onclick = () => {
@@ -229,9 +199,9 @@ function renderQuestion(q, index) {
     }
   };
 
+  // Gọi 1 lần duy nhất khi load câu
   resetTimer();
   startTimer();
   speakBtn.click();
 }
-
 renderQuestion(questions[currentIndex], currentIndex);
