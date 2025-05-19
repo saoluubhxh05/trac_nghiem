@@ -174,6 +174,10 @@ function renderQuestion(q, index) {
         replayBtn.disabled = false;
         replayBtn.style.opacity = "1";
         finished = true;
+        // 👉 Thêm dòng này để hiển thị đáp án hoàn chỉnh:
+        const fullAnswer = document.createElement("div");
+        fullAnswer.innerHTML = `<strong>📌 Đáp án đúng:</strong> ${q.dapAn}`;
+        block.appendChild(fullAnswer);
       } else {
         speakBtn.disabled = false;
       }
