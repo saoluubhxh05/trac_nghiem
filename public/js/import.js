@@ -43,7 +43,9 @@ document.addEventListener("DOMContentLoaded", () => {
       const sheet = workbook.Sheets[workbook.SheetNames[0]];
       const json = XLSX.utils.sheet_to_json(sheet, { defval: "" });
 
-      const raw = json.map((row) => ({
+      // Thêm chỉ số dòng (STT) + lọc dòng đủ điều kiện
+      const raw = json.map((row, index) => ({
+        stt: index + 1, // ✅ Gắn STT theo thứ tự dòng
         monHoc: row["Môn học"] || "",
         loai: row["Loại"] || "",
         chuDe: row["Chủ đề"] || "",
@@ -61,7 +63,6 @@ document.addEventListener("DOMContentLoaded", () => {
         tenAnh: row["tenAnh"] || "",
       }));
 
-      // Chỉ giữ lại các dòng có đủ dữ liệu cần thiết
       const questions = raw.filter(
         (q) => q.monHoc && q.loai && q.chuDe && q.cauHoi && q.dapAn
       );
@@ -76,9 +77,9 @@ document.addEventListener("DOMContentLoaded", () => {
         )
       );
 
-      // Gửi lên Firebase
+      // Gửi lên Firestore
       const questionsCollection = collection(db, "questions");
-      console.log("📤 Dữ liệu sẽ ghi vào Firestore:", questions);
+      console.log("📤 Đang ghi lên Firestore:", questions);
 
       await Promise.all(
         questions.map(async (q, index) => {
@@ -111,9 +112,11 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   });
 
-  // Hiển thị dữ liệu đã lưu
+  // Hiển thị dữ liệu đã lưu (sắp xếp theo stt)
   getDocs(collection(db, "questions")).then((snapshot) => {
     const questions = snapshot.docs.map((doc) => doc.data());
+    questions.sort((a, b) => (a.stt || 0) - (b.stt || 0)); // ✅ Sắp xếp theo STT
+
     soLuongSpan.textContent = `Tổng số câu: ${questions.length}`;
     tbody.innerHTML = "";
 
