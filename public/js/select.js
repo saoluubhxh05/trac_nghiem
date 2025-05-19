@@ -152,6 +152,9 @@ document.addEventListener("DOMContentLoaded", async () => {
 
       if (thuTu === "ngaunhien") {
         filtered = shuffleArray(filtered);
+      } else {
+        // ✅ Sắp xếp theo stt nếu có
+        filtered = filtered.sort((a, b) => (a.stt || 0) - (b.stt || 0));
       }
 
       selectedQuestions = selectedQuestions.concat(filtered.slice(0, soCau));
