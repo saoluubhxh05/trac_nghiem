@@ -152,12 +152,18 @@ function renderQuestion(q, index) {
   }
 
   speakBtn.onclick = () => {
+    clearInterval(timerInterval); // 🔧 Dừng timer cũ nếu có
+
     speakBtn.disabled = true;
-    resetTimer();
-    startTimer();
+    replayBtn.disabled = true;
+    replayBtn.style.opacity = "0.5";
+
+    resetTimer(); // reset về defaultTime
+    startTimer(); // bắt đầu lại timer mới
 
     startSpeechRecognition((userSpeech) => {
       spoken.innerHTML = `<strong>Bạn nói:</strong> "${userSpeech}"`;
+
       const result = compareWords(userSpeech, q.dapAn);
       match.innerHTML = `<strong>✅ Đúng:</strong> ${result.revealed}<br>🎯 <strong>Độ khớp:</strong> ${result.percent}%`;
       accumulatedLine.innerHTML = `<strong>Đáp án tích lũy:</strong> ${result.accumulated}`;
@@ -165,9 +171,13 @@ function renderQuestion(q, index) {
       if (result.percent >= 80) {
         clearInterval(timerInterval);
         nextBtn.disabled = false;
+        replayBtn.disabled = false;
+        replayBtn.style.opacity = "1";
         finished = true;
       } else {
         speakBtn.disabled = false;
+        replayBtn.disabled = true;
+        replayBtn.style.opacity = "0.5";
       }
     });
   };
