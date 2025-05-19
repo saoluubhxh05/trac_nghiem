@@ -43,22 +43,28 @@ document.addEventListener("DOMContentLoaded", () => {
       const sheet = workbook.Sheets[workbook.SheetNames[0]];
       const json = XLSX.utils.sheet_to_json(sheet, { defval: "" });
 
-      const questions = json.map((row) => ({
-        monHoc: row["Môn học"],
-        loai: row["Loại"],
-        chuDe: row["Chủ đề"],
-        cauHoi: row["Câu trắc nghiệm"] || row["Dịch sang tiếng Việt Câu hỏi"],
+      const raw = json.map((row) => ({
+        monHoc: row["Môn học"] || "",
+        loai: row["Loại"] || "",
+        chuDe: row["Chủ đề"] || "",
+        cauHoi:
+          row["Câu trắc nghiệm"] || row["Dịch sang tiếng Việt Câu hỏi"] || "",
+        dapAn: row["Đáp án đúng"] || "",
         phuongAn1:
-          row["Phương án 1"] || "" || row["Các phương án"]?.split("#")[0],
+          row["Phương án 1"] || row["Các phương án"]?.split("#")[0] || "",
         phuongAn2:
-          row["Phương án 2"] || "" || row["Các phương án"]?.split("#")[1],
+          row["Phương án 2"] || row["Các phương án"]?.split("#")[1] || "",
         phuongAn3:
-          row["Phương án 3"] || "" || row["Các phương án"]?.split("#")[2],
+          row["Phương án 3"] || row["Các phương án"]?.split("#")[2] || "",
         phuongAn4:
-          row["Phương án 4"] || "" || row["Các phương án"]?.split("#")[3],
-        dapAn: row["Đáp án đúng"],
+          row["Phương án 4"] || row["Các phương án"]?.split("#")[3] || "",
         tenAnh: row["tenAnh"] || "",
       }));
+
+      // Chỉ giữ lại các dòng có đủ dữ liệu cần thiết
+      const questions = raw.filter(
+        (q) => q.monHoc && q.loai && q.chuDe && q.cauHoi && q.dapAn
+      );
 
       console.log("📤 Dữ liệu import:", questions);
 
