@@ -132,6 +132,10 @@ function renderQuestion(q, index) {
   let isListening = false;
   let finalTranscript = "";
   recognition = null;
+  let retryMode = false;
+  let retryCount = 0;
+  let retryScores = [];
+  let mustRedo = JSON.parse(localStorage.getItem("mustRedo") || "[]");
 
   const answerWords = normalize(q.dapAn).split(" ");
   accumulatedMatched = new Array(answerWords.length).fill("");
@@ -149,18 +153,29 @@ function renderQuestion(q, index) {
       if (secondsLeft <= 0) {
         clearInterval(timerInterval);
         if (!finished) {
-          alert("⏳ Hết giờ! Hãy thử lại.");
-          spoken.innerHTML = `<strong>Bạn nói:</strong> `;
-          match.innerHTML = "";
-          accumulatedLine.innerHTML = `<strong>Đáp án tích lũy:</strong> ${accumulatedMatched
-            .map((w) => w || "___")
-            .join(" ")}`;
-          nextBtn.disabled = true;
-          speakBtn.disabled = false;
-          replayBtn.disabled = true;
-          replayBtn.style.opacity = "0.5";
-          helpBtn.disabled = true;
-          helpBtn.style.opacity = "0.5";
+          const correctNow = accumulatedMatched.filter(
+            (w, i) => w === answerWords[i]
+          ).length;
+          const percent = Math.round((correctNow / answerWords.length) * 100);
+
+          if (percent >= 70) {
+            finished = true;
+            nextBtn.disabled = false;
+            replayBtn.disabled = false;
+            replayBtn.style.opacity = "1";
+          } else {
+            retryMode = true;
+            retryCount = 0;
+            retryScores = [];
+
+            const info = document.createElement("div");
+            info.innerHTML = `
+      <p style="color: red"><strong>📌 Đáp án đúng:</strong> ${q.dapAn}</p>
+      <p><strong>⚠️ Hãy ghi nhớ đáp án đúng, sau đó bấm 'Bắt đầu nói' và nói 3 lần. Tổng độ khớp ≥ 60% sẽ được tính là hoàn thành.</strong></p>
+      <div id="retryResults"></div>
+    `;
+            block.appendChild(info);
+          }
         }
       }
     }, 1000);
@@ -207,26 +222,58 @@ function renderQuestion(q, index) {
           return;
         }
 
-        spoken.innerHTML = `<strong>Bạn nói:</strong> "${finalTranscript}"`;
         const result = compareWords(finalTranscript, q.dapAn);
+        spoken.innerHTML = `<strong>Bạn nói:</strong> "${finalTranscript}"`;
         match.innerHTML = `<strong>✅ Đúng:</strong> ${result.revealed}<br>🎯 <strong>Độ khớp:</strong> ${result.percent}%`;
         accumulatedLine.innerHTML = `<strong>Đáp án tích lũy:</strong> ${result.accumulated}`;
 
-        if (result.percent >= 70) {
-          clearInterval(timerInterval);
-          nextBtn.disabled = false;
-          replayBtn.disabled = false;
-          replayBtn.style.opacity = "1";
-          helpBtn.disabled = true;
-          helpBtn.style.opacity = "0.5";
-          finished = true;
+        if (!retryMode) {
+          if (result.percent >= 70) {
+            clearInterval(timerInterval);
+            nextBtn.disabled = false;
+            replayBtn.disabled = false;
+            replayBtn.style.opacity = "1";
+            helpBtn.disabled = true;
+            helpBtn.style.opacity = "0.5";
+            finished = true;
 
-          const fullAnswer = document.createElement("div");
-          fullAnswer.innerHTML = `<strong>📌 Đáp án đúng:</strong> ${q.dapAn}`;
-          block.appendChild(fullAnswer);
-        } else if (result.percent >= 50 && !troGiupUsed) {
-          helpBtn.disabled = false;
-          helpBtn.style.opacity = "1";
+            const fullAnswer = document.createElement("div");
+            fullAnswer.innerHTML = `<strong>📌 Đáp án đúng:</strong> ${q.dapAn}`;
+            block.appendChild(fullAnswer);
+          } else if (result.percent >= 50 && !troGiupUsed) {
+            helpBtn.disabled = false;
+            helpBtn.style.opacity = "1";
+          }
+        } else {
+          // Xử lý retry 3 lần
+          retryCount++;
+          retryScores.push(result.percent);
+
+          const retryResults = document.getElementById("retryResults");
+          const resLine = document.createElement("p");
+          resLine.innerHTML = `🗣️ Lần ${retryCount}: ${result.percent}%`;
+          retryResults.appendChild(resLine);
+
+          if (retryCount === 3) {
+            const total = retryScores.reduce((a, b) => a + b, 0);
+            const pass = total >= 60;
+
+            const summary = document.createElement("p");
+            summary.innerHTML = `<strong>Tổng độ khớp: ${total}% → ${
+              pass ? "✅ Đạt" : "❌ Chưa đạt"
+            }</strong>`;
+            retryResults.appendChild(summary);
+
+            if (pass) {
+              nextBtn.disabled = false;
+              finished = true;
+            } else {
+              mustRedo.push(q);
+              localStorage.setItem("mustRedo", JSON.stringify(mustRedo));
+              nextBtn.disabled = false;
+              finished = true;
+            }
+          }
         }
       }, 300);
     }
@@ -276,7 +323,19 @@ function renderQuestion(q, index) {
       renderQuestion(questions[currentIndex], currentIndex);
     } else {
       const done = document.createElement("div");
-      done.innerHTML = `<h2>🎉 Bạn đã hoàn thành bài luyện dịch!</h2>`;
+      let redoList = JSON.parse(localStorage.getItem("mustRedo") || "[]");
+
+      let content = `<h2>🎉 Bạn đã hoàn thành bài luyện dịch!</h2>`;
+      if (redoList.length > 0) {
+        content += `<p style="color:red"><strong>❌ Các câu cần làm lại:</strong></p><ul>`;
+        redoList.forEach((q, i) => {
+          content += `<li>Câu ${i + 1}: ${q.cauHoi}</li>`;
+        });
+        content += `</ul>`;
+      }
+
+      done.innerHTML = content;
+      localStorage.removeItem("mustRedo");
       container.appendChild(done);
     }
   };

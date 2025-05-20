@@ -250,16 +250,23 @@ function renderQuestion(q, index) {
           retryScores.push(result.percent);
 
           const retryResults = document.getElementById("retryResults");
-          const resLine = document.createElement("p");
-          resLine.innerHTML = `🗣️ Lần ${retryCount}: ${result.percent}%`;
-          retryResults.appendChild(resLine);
+
+          const resBlock = document.createElement("div");
+          resBlock.style.marginTop = "10px";
+          resBlock.innerHTML = `
+  <p><strong>🗣️ Lần ${retryCount}</strong></p>
+  <p style="margin-left:16px">📌 Bạn nói: <em>${finalTranscript}</em></p>
+  <p style="margin-left:16px">🎯 Độ khớp: ${result.percent}%</p>
+`;
+
+          retryResults.appendChild(resBlock);
 
           if (retryCount === 3) {
             const total = retryScores.reduce((a, b) => a + b, 0);
             const pass = total >= 60;
 
             const summary = document.createElement("p");
-            summary.innerHTML = `<strong>Tổng độ khớp: ${total}% → ${
+            summary.innerHTML = `<strong>📊 Tổng độ khớp: ${total}% → ${
               pass ? "✅ Đạt" : "❌ Chưa đạt"
             }</strong>`;
             retryResults.appendChild(summary);
