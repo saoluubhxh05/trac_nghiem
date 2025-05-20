@@ -13,7 +13,6 @@ let currentIndex = 0;
 let recognition;
 let timerInterval;
 let accumulatedMatched = [];
-let canLamLai = [];
 
 function normalize(text) {
   return text
@@ -29,9 +28,10 @@ function compareWords(userText, answer) {
   let correct = 0;
 
   answerWords.forEach((w, i) => {
-    if (userWords.includes(w)) {
-      correct++;
+    if (accumulatedMatched[i] === w || userWords.includes(w)) {
+      accumulatedMatched[i] = w;
       revealed.push(w);
+      correct++;
     } else {
       revealed.push("___");
     }
@@ -41,8 +41,7 @@ function compareWords(userText, answer) {
   return {
     revealed: revealed.join(" "),
     percent,
-    total: correct,
-    totalWords: answerWords.length,
+    accumulated: accumulatedMatched.map((w) => w || "___").join(" "),
   };
 }
 
@@ -65,6 +64,7 @@ function startSpeechRecognition(onResult) {
 
   recognition.onerror = () => {
     alert("❌ Lỗi nhận diện giọng nói.");
+    speakBtn.disabled = false;
   };
 
   recognition.start();
@@ -79,16 +79,19 @@ function renderQuestion(q, index) {
   vi.textContent = `📝 Câu ${index + 1}: ${q.cauHoi}`;
 
   const timer = document.createElement("div");
+  timer.id = `timer-${index}`;
   timer.className = "timer";
   timer.textContent = `⏱️ ${defaultTime}s`;
 
   const spoken = document.createElement("div");
   spoken.className = "spoken-result";
+  spoken.innerHTML = `<strong>Bạn nói:</strong> `;
 
   const match = document.createElement("div");
   match.className = "match-result";
 
-  const retryBlock = document.createElement("div");
+  const accumulatedLine = document.createElement("div");
+  accumulatedLine.className = "match-result";
 
   const controls = document.createElement("div");
   controls.className = "controls";
@@ -96,29 +99,46 @@ function renderQuestion(q, index) {
   const speakBtn = document.createElement("button");
   speakBtn.textContent = "🎙️ Bắt đầu nói";
 
+  const replayBtn = document.createElement("button");
+  replayBtn.textContent = "🔊 Đọc lại";
+  replayBtn.disabled = true;
+  replayBtn.style.opacity = "0.5";
+
+  const helpBtn = document.createElement("button");
+  helpBtn.textContent = "🔍 Trợ giúp";
+  helpBtn.disabled = true;
+  helpBtn.style.opacity = "0.5";
+
   const nextBtn = document.createElement("button");
   nextBtn.textContent = "➡️ Câu tiếp theo";
   nextBtn.disabled = true;
 
   controls.appendChild(speakBtn);
+  controls.appendChild(replayBtn);
+  controls.appendChild(helpBtn);
   controls.appendChild(nextBtn);
 
   block.appendChild(vi);
   block.appendChild(timer);
   block.appendChild(spoken);
   block.appendChild(match);
-  block.appendChild(retryBlock);
+  block.appendChild(accumulatedLine);
   block.appendChild(controls);
   container.appendChild(block);
 
   let secondsLeft = defaultTime;
   let finished = false;
-  let isRetryMode = false;
-  let retryCount = 0;
-  let retryScores = [];
-
+  let troGiupUsed = false;
   let isListening = false;
   let finalTranscript = "";
+  recognition = null;
+  let retryMode = false;
+  let retryCount = 0;
+  let retryScores = [];
+  let mustRedo = JSON.parse(localStorage.getItem("mustRedo") || "[]");
+
+  const answerWords = normalize(q.dapAn).split(" ");
+  accumulatedMatched = new Array(answerWords.length).fill("");
 
   function resetTimer() {
     clearInterval(timerInterval);
@@ -133,77 +153,168 @@ function renderQuestion(q, index) {
       if (secondsLeft <= 0) {
         clearInterval(timerInterval);
         if (!finished) {
-          const answer = q.dapAn;
-          spoken.innerHTML = `<strong>📌 Đáp án đúng:</strong> ${answer}`;
-          match.innerHTML = `<strong>⏳ Hết giờ!</strong><br>💡 Hãy ghi nhớ đáp án đúng sau đó bấm "Bắt đầu nói" và nói 3 lần.<br>✅ Nếu tổng độ khớp của 3 lần ≥ 60% bạn sẽ hoàn thành.`;
+          const correctNow = accumulatedMatched.filter(
+            (w, i) => w === answerWords[i]
+          ).length;
+          const percent = Math.round((correctNow / answerWords.length) * 100);
 
-          isRetryMode = true;
-          retryCount = 0;
-          retryScores = [];
+          if (percent >= 70) {
+            finished = true;
+            nextBtn.disabled = false;
+            replayBtn.disabled = false;
+            replayBtn.style.opacity = "1";
+          } else {
+            retryMode = true;
+            retryCount = 0;
+            retryScores = [];
 
-          speakBtn.disabled = false;
-          speakBtn.textContent = "🎙️ Bắt đầu nói (3 lần)";
+            const info = document.createElement("div");
+            info.innerHTML = `
+      <p style="color: red"><strong>📌 Đáp án đúng:</strong> ${q.dapAn}</p>
+      <p><strong>⚠️ Hãy ghi nhớ đáp án đúng, sau đó bấm 'Bắt đầu nói' và nói 3 lần. Tổng độ khớp ≥ 60% sẽ được tính là hoàn thành.</strong></p>
+      <div id="retryResults"></div>
+    `;
+            block.appendChild(info);
+          }
         }
       }
     }, 1000);
   }
 
   speakBtn.onclick = () => {
-    if (isListening) return;
+    const SpeechRecognition =
+      window.SpeechRecognition || window.webkitSpeechRecognition;
+    if (!SpeechRecognition) {
+      alert("⚠️ Trình duyệt không hỗ trợ ghi âm!");
+      return;
+    }
 
-    isListening = true;
-    speakBtn.textContent = "⏳ Đang nghe...";
-    finalTranscript = "";
+    if (!recognition) {
+      recognition = new SpeechRecognition();
+      recognition.lang = "en-US";
+      recognition.interimResults = true;
+    }
 
-    startSpeechRecognition((userSpeech) => {
+    if (!isListening) {
+      finalTranscript = "";
+      isListening = true;
+      speakBtn.textContent = "⏳ Chờ";
+      recognition.start();
+
+      recognition.onresult = (event) => {
+        const r = event.results[event.results.length - 1];
+        if (r.isFinal) finalTranscript = r[0].transcript.trim();
+      };
+
+      recognition.onerror = (e) => {
+        alert("❌ Lỗi ghi âm: " + e.error);
+        isListening = false;
+        speakBtn.textContent = "🎙️ Bắt đầu nói";
+      };
+    } else {
+      recognition.stop();
       isListening = false;
-      speakBtn.textContent = isRetryMode
-        ? "🎙️ Bắt đầu nói (3 lần)"
-        : "🎙️ Bắt đầu nói";
+      speakBtn.textContent = "🎙️ Bắt đầu nói";
 
-      const result = compareWords(userSpeech, q.dapAn);
-      spoken.innerHTML = `<strong>Bạn nói:</strong> "${userSpeech}"`;
-      match.innerHTML = `<strong>✅ Đúng:</strong> ${result.revealed}<br>🎯 <strong>Độ khớp:</strong> ${result.percent}%`;
-
-      if (!isRetryMode) {
-        if (result.percent >= 70) {
-          clearInterval(timerInterval);
-          nextBtn.disabled = false;
-          finished = true;
-
-          const fullAnswer = document.createElement("div");
-          fullAnswer.innerHTML = `<strong>📌 Đáp án đúng:</strong> ${q.dapAn}`;
-          block.appendChild(fullAnswer);
+      setTimeout(() => {
+        if (!finalTranscript) {
+          spoken.innerHTML = `<p style="color:red">⚠️ Không nhận được nội dung nào!</p>`;
+          return;
         }
-      } else {
-        retryCount++;
-        retryScores.push(result.percent);
 
-        const line = document.createElement("p");
-        line.innerHTML = `🔁 Lần ${retryCount}: <em>"${userSpeech}"</em> → 🎯 ${result.percent}%`;
-        retryBlock.appendChild(line);
+        const result = compareWords(finalTranscript, q.dapAn);
+        spoken.innerHTML = `<strong>Bạn nói:</strong> "${finalTranscript}"`;
+        match.innerHTML = `<strong>✅ Đúng:</strong> ${result.revealed}<br>🎯 <strong>Độ khớp:</strong> ${result.percent}%`;
+        accumulatedLine.innerHTML = `<strong>Đáp án tích lũy:</strong> ${result.accumulated}`;
 
-        if (retryCount === 3) {
-          const total = retryScores.reduce((a, b) => a + b, 0);
-          const summary = document.createElement("p");
-          summary.innerHTML = `<strong>📊 Tổng độ khớp sau 3 lần: ${total}%</strong>`;
-          retryBlock.appendChild(summary);
-
-          if (total >= 60) {
+        if (!retryMode) {
+          if (result.percent >= 70) {
+            clearInterval(timerInterval);
             nextBtn.disabled = false;
+            replayBtn.disabled = false;
+            replayBtn.style.opacity = "1";
+            helpBtn.disabled = true;
+            helpBtn.style.opacity = "0.5";
             finished = true;
-          } else {
-            canLamLai.push(q);
-            const warn = document.createElement("p");
-            warn.style.color = "red";
-            warn.innerHTML =
-              "⚠️ Bạn chưa hoàn thành đủ yêu cầu. Câu này sẽ được luyện lại sau.";
-            retryBlock.appendChild(warn);
-            nextBtn.disabled = false;
+
+            const fullAnswer = document.createElement("div");
+            fullAnswer.innerHTML = `<strong>📌 Đáp án đúng:</strong> ${q.dapAn}`;
+            block.appendChild(fullAnswer);
+          } else if (result.percent >= 50 && !troGiupUsed) {
+            helpBtn.disabled = false;
+            helpBtn.style.opacity = "1";
+          }
+        } else {
+          // Xử lý retry 3 lần
+          retryCount++;
+          retryScores.push(result.percent);
+
+          const retryResults = document.getElementById("retryResults");
+          const resLine = document.createElement("p");
+          resLine.innerHTML = `🗣️ Lần ${retryCount}: ${result.percent}%`;
+          retryResults.appendChild(resLine);
+
+          if (retryCount === 3) {
+            const total = retryScores.reduce((a, b) => a + b, 0);
+            const pass = total >= 60;
+
+            const summary = document.createElement("p");
+            summary.innerHTML = `<strong>Tổng độ khớp: ${total}% → ${
+              pass ? "✅ Đạt" : "❌ Chưa đạt"
+            }</strong>`;
+            retryResults.appendChild(summary);
+
+            if (pass) {
+              nextBtn.disabled = false;
+              finished = true;
+            } else {
+              mustRedo.push(q);
+              localStorage.setItem("mustRedo", JSON.stringify(mustRedo));
+              nextBtn.disabled = false;
+              finished = true;
+            }
           }
         }
+      }, 300);
+    }
+  };
+
+  helpBtn.onclick = () => {
+    for (let i = 0; i < answerWords.length; i++) {
+      if (!accumulatedMatched[i]) {
+        accumulatedMatched[i] = answerWords[i];
+        break;
       }
-    });
+    }
+
+    const updated = accumulatedMatched.map((w) => w || "___").join(" ");
+    accumulatedLine.innerHTML = `<strong>Đáp án tích lũy:</strong> ${updated}`;
+
+    const correctNow = accumulatedMatched.filter(
+      (w, i) => w === answerWords[i]
+    ).length;
+    const newPercent = Math.round((correctNow / answerWords.length) * 100);
+    match.innerHTML += `<br><em>➡️ Sau trợ giúp: ${newPercent}%</em>`;
+
+    if (newPercent >= 70) {
+      clearInterval(timerInterval);
+      nextBtn.disabled = false;
+      replayBtn.disabled = false;
+      replayBtn.style.opacity = "1";
+      finished = true;
+
+      const fullAnswer = document.createElement("div");
+      fullAnswer.innerHTML = `<strong>📌 Đáp án đúng:</strong> ${q.dapAn}`;
+      block.appendChild(fullAnswer);
+    }
+
+    troGiupUsed = true;
+    helpBtn.disabled = true;
+    helpBtn.style.opacity = "0.5";
+  };
+
+  replayBtn.onclick = () => {
+    speak(q.dapAn);
   };
 
   nextBtn.onclick = () => {
@@ -212,20 +323,26 @@ function renderQuestion(q, index) {
       renderQuestion(questions[currentIndex], currentIndex);
     } else {
       const done = document.createElement("div");
-      done.innerHTML = `<h2>🎉 Bạn đã hoàn thành bài luyện dịch!</h2>`;
-      container.appendChild(done);
+      let redoList = JSON.parse(localStorage.getItem("mustRedo") || "[]");
 
-      if (canLamLai.length > 0) {
-        const list = document.createElement("div");
-        list.innerHTML = `<h3>📌 Các câu cần làm lại:</h3><ul>${canLamLai
-          .map((q, i) => `<li>${i + 1}. ${q.cauHoi}</li>`)
-          .join("")}</ul>`;
-        container.appendChild(list);
+      let content = `<h2>🎉 Bạn đã hoàn thành bài luyện dịch!</h2>`;
+      if (redoList.length > 0) {
+        content += `<p style="color:red"><strong>❌ Các câu cần làm lại:</strong></p><ul>`;
+        redoList.forEach((q, i) => {
+          content += `<li>Câu ${i + 1}: ${q.cauHoi}</li>`;
+        });
+        content += `</ul>`;
       }
+
+      done.innerHTML = content;
+      localStorage.removeItem("mustRedo");
+      container.appendChild(done);
     }
   };
 
   resetTimer();
   startTimer();
+  speakBtn.click();
 }
+
 renderQuestion(questions[currentIndex], currentIndex);
