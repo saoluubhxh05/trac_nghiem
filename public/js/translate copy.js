@@ -28,7 +28,7 @@ function compareWords(userText, answer) {
   let correct = 0;
 
   answerWords.forEach((w, i) => {
-    if (accumulatedMatched[i] === w || userWords.includes(w)) {
+    if (accumulatedMatched[i] === w || userWords[i] === w) {
       accumulatedMatched[i] = w;
       revealed.push(w);
       correct++;
@@ -170,10 +170,10 @@ function renderQuestion(q, index) {
 
             const info = document.createElement("div");
             info.innerHTML = `
-    <p style="color: red"><strong>📌 Đáp án đúng:</strong> ${q.dapAn}</p>
-    <p><strong>⚠️ Hãy ghi nhớ đáp án đúng, sau đó bấm 'Bắt đầu nói' và nói 3 lần. Tổng độ khớp ≥ 60% sẽ được tính là hoàn thành.</strong></p>
-    <div id="retryResults" style="margin-top:10px"></div>
-  `;
+  <p style="color: red"><strong>📌 Đáp án đúng:</strong> ${q.dapAn}</p>
+  <p><strong>⚠️ Hãy ghi nhớ đáp án đúng, sau đó bấm 'Bắt đầu nói' và nói 3 lần. Tổng độ khớp ≥ 60% sẽ được tính là hoàn thành.</strong></p>
+  <div id="retryResults-${index}" style="margin-top:10px"></div>
+`;
             block.appendChild(info);
           }
         }
@@ -231,7 +231,8 @@ function renderQuestion(q, index) {
           retryCount++;
           retryScores.push(result.percent);
 
-          const retryResults = document.getElementById("retryResults");
+          const retryResults = document.getElementById(`retryResults-${index}`);
+
           const resBlock = document.createElement("div");
           resBlock.style.marginTop = "10px";
           resBlock.innerHTML = `

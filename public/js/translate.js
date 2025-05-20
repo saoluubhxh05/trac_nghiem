@@ -24,17 +24,15 @@ function normalize(text) {
 function compareWords(userText, answer) {
   const userWords = normalize(userText).split(" ");
   const answerWords = normalize(answer).split(" ");
-  const revealed = [];
   let correct = 0;
 
-  answerWords.forEach((w, i) => {
-    if (accumulatedMatched[i] === w || userWords[i] === w) {
+  const revealed = answerWords.map((w, i) => {
+    if (accumulatedMatched[i] === w || userWords.includes(w)) {
       accumulatedMatched[i] = w;
-      revealed.push(w);
       correct++;
-    } else {
-      revealed.push("___");
+      return w;
     }
+    return "___";
   });
 
   const percent = Math.round((correct / answerWords.length) * 100);
