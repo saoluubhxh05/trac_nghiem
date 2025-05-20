@@ -170,10 +170,10 @@ function renderQuestion(q, index) {
 
             const info = document.createElement("div");
             info.innerHTML = `
-      <p style="color: red"><strong>📌 Đáp án đúng:</strong> ${q.dapAn}</p>
-      <p><strong>⚠️ Hãy ghi nhớ đáp án đúng, sau đó bấm 'Bắt đầu nói' và nói 3 lần. Tổng độ khớp ≥ 60% sẽ được tính là hoàn thành.</strong></p>
-      <div id="retryResults"></div>
-    `;
+    <p style="color: red"><strong>📌 Đáp án đúng:</strong> ${q.dapAn}</p>
+    <p><strong>⚠️ Hãy ghi nhớ đáp án đúng, sau đó bấm 'Bắt đầu nói' và nói 3 lần. Tổng độ khớp ≥ 60% sẽ được tính là hoàn thành.</strong></p>
+    <div id="retryResults" style="margin-top:10px"></div>
+  `;
             block.appendChild(info);
           }
         }
@@ -227,39 +227,27 @@ function renderQuestion(q, index) {
         match.innerHTML = `<strong>✅ Đúng:</strong> ${result.revealed}<br>🎯 <strong>Độ khớp:</strong> ${result.percent}%`;
         accumulatedLine.innerHTML = `<strong>Đáp án tích lũy:</strong> ${result.accumulated}`;
 
-        if (!retryMode) {
-          if (result.percent >= 70) {
-            clearInterval(timerInterval);
-            nextBtn.disabled = false;
-            replayBtn.disabled = false;
-            replayBtn.style.opacity = "1";
-            helpBtn.disabled = true;
-            helpBtn.style.opacity = "0.5";
-            finished = true;
-
-            const fullAnswer = document.createElement("div");
-            fullAnswer.innerHTML = `<strong>📌 Đáp án đúng:</strong> ${q.dapAn}`;
-            block.appendChild(fullAnswer);
-          } else if (result.percent >= 50 && !troGiupUsed) {
-            helpBtn.disabled = false;
-            helpBtn.style.opacity = "1";
-          }
-        } else {
-          // Xử lý retry 3 lần
+        if (retryMode) {
           retryCount++;
           retryScores.push(result.percent);
 
           const retryResults = document.getElementById("retryResults");
-          const resLine = document.createElement("p");
-          resLine.innerHTML = `🗣️ Lần ${retryCount}: ${result.percent}%`;
-          retryResults.appendChild(resLine);
+          const resBlock = document.createElement("div");
+          resBlock.style.marginTop = "10px";
+          resBlock.innerHTML = `
+          <p><strong>🗣️ Lần ${retryCount}</strong></p>
+          <p style="margin-left:16px">📌 Bạn nói: <em>${finalTranscript}</em></p>
+          <p style="margin-left:16px">🎯 Độ khớp: ${result.percent}%</p>
+        `;
+          retryResults.appendChild(resBlock);
 
           if (retryCount === 3) {
             const total = retryScores.reduce((a, b) => a + b, 0);
-            const pass = total >= 60;
+            const avg = Math.round(total / retryScores.length);
+            const pass = avg >= 60;
 
             const summary = document.createElement("p");
-            summary.innerHTML = `<strong>Tổng độ khớp: ${total}% → ${
+            summary.innerHTML = `<strong>📊 Trung bình độ khớp: ${avg}% → ${
               pass ? "✅ Đạt" : "❌ Chưa đạt"
             }</strong>`;
             retryResults.appendChild(summary);
@@ -274,6 +262,25 @@ function renderQuestion(q, index) {
               finished = true;
             }
           }
+
+          return;
+        }
+
+        if (result.percent >= 70) {
+          clearInterval(timerInterval);
+          nextBtn.disabled = false;
+          replayBtn.disabled = false;
+          replayBtn.style.opacity = "1";
+          helpBtn.disabled = true;
+          helpBtn.style.opacity = "0.5";
+          finished = true;
+
+          const fullAnswer = document.createElement("div");
+          fullAnswer.innerHTML = `<strong>📌 Đáp án đúng:</strong> ${q.dapAn}`;
+          block.appendChild(fullAnswer);
+        } else if (result.percent >= 50 && !troGiupUsed) {
+          helpBtn.disabled = false;
+          helpBtn.style.opacity = "1";
         }
       }, 300);
     }
