@@ -104,14 +104,14 @@ function renderQuestion(q, index) {
   replayBtn.disabled = true;
   replayBtn.style.opacity = "0.5";
 
-  const nextBtn = document.createElement("button");
-  nextBtn.textContent = "➡️ Câu tiếp theo";
-  nextBtn.disabled = true;
-
   const helpBtn = document.createElement("button");
   helpBtn.textContent = "🔍 Trợ giúp";
   helpBtn.disabled = true;
   helpBtn.style.opacity = "0.5";
+
+  const nextBtn = document.createElement("button");
+  nextBtn.textContent = "➡️ Câu tiếp theo";
+  nextBtn.disabled = true;
 
   controls.appendChild(speakBtn);
   controls.appendChild(replayBtn);
@@ -124,12 +124,14 @@ function renderQuestion(q, index) {
   block.appendChild(match);
   block.appendChild(accumulatedLine);
   block.appendChild(controls);
-
   container.appendChild(block);
 
   let secondsLeft = defaultTime;
   let finished = false;
   let troGiupUsed = false;
+  let isListening = false;
+  let finalTranscript = "";
+  recognition = null;
 
   const answerWords = normalize(q.dapAn).split(" ");
   accumulatedMatched = new Array(answerWords.length).fill("");
@@ -165,45 +167,72 @@ function renderQuestion(q, index) {
   }
 
   speakBtn.onclick = () => {
-    speakBtn.disabled = true;
-    replayBtn.disabled = true;
-    replayBtn.style.opacity = "0.5";
-    helpBtn.disabled = true;
-    helpBtn.style.opacity = "0.5";
+    const SpeechRecognition =
+      window.SpeechRecognition || window.webkitSpeechRecognition;
+    if (!SpeechRecognition) {
+      alert("⚠️ Trình duyệt không hỗ trợ ghi âm!");
+      return;
+    }
 
-    startSpeechRecognition((userSpeech) => {
-      spoken.innerHTML = `<strong>Bạn nói:</strong> "${userSpeech}"`;
-      const result = compareWords(userSpeech, q.dapAn);
-      match.innerHTML = `<strong>✅ Đúng:</strong> ${result.revealed}<br>🎯 <strong>Độ khớp:</strong> ${result.percent}%`;
-      accumulatedLine.innerHTML = `<strong>Đáp án tích lũy:</strong> ${result.accumulated}`;
+    if (!recognition) {
+      recognition = new SpeechRecognition();
+      recognition.lang = "en-US";
+      recognition.interimResults = true;
+    }
 
-      if (result.percent >= 70) {
-        clearInterval(timerInterval);
-        nextBtn.disabled = false;
-        replayBtn.disabled = false;
-        replayBtn.style.opacity = "1";
-        helpBtn.disabled = true;
-        helpBtn.style.opacity = "0.5";
-        finished = true;
+    if (!isListening) {
+      finalTranscript = "";
+      isListening = true;
+      speakBtn.textContent = "⏳ Chờ";
+      recognition.start();
 
-        const fullAnswer = document.createElement("div");
-        fullAnswer.innerHTML = `<strong>📌 Đáp án đúng:</strong> ${q.dapAn}`;
-        block.appendChild(fullAnswer);
-      } else if (result.percent >= 50 && !troGiupUsed) {
-        helpBtn.disabled = false;
-        helpBtn.style.opacity = "1";
-      } else {
-        speakBtn.disabled = false;
-      }
-    });
-  };
+      recognition.onresult = (event) => {
+        const r = event.results[event.results.length - 1];
+        if (r.isFinal) finalTranscript = r[0].transcript.trim();
+      };
 
-  replayBtn.onclick = () => {
-    speak(q.dapAn);
+      recognition.onerror = (e) => {
+        alert("❌ Lỗi ghi âm: " + e.error);
+        isListening = false;
+        speakBtn.textContent = "🎙️ Bắt đầu nói";
+      };
+    } else {
+      recognition.stop();
+      isListening = false;
+      speakBtn.textContent = "🎙️ Bắt đầu nói";
+
+      setTimeout(() => {
+        if (!finalTranscript) {
+          spoken.innerHTML = `<p style="color:red">⚠️ Không nhận được nội dung nào!</p>`;
+          return;
+        }
+
+        spoken.innerHTML = `<strong>Bạn nói:</strong> "${finalTranscript}"`;
+        const result = compareWords(finalTranscript, q.dapAn);
+        match.innerHTML = `<strong>✅ Đúng:</strong> ${result.revealed}<br>🎯 <strong>Độ khớp:</strong> ${result.percent}%`;
+        accumulatedLine.innerHTML = `<strong>Đáp án tích lũy:</strong> ${result.accumulated}`;
+
+        if (result.percent >= 70) {
+          clearInterval(timerInterval);
+          nextBtn.disabled = false;
+          replayBtn.disabled = false;
+          replayBtn.style.opacity = "1";
+          helpBtn.disabled = true;
+          helpBtn.style.opacity = "0.5";
+          finished = true;
+
+          const fullAnswer = document.createElement("div");
+          fullAnswer.innerHTML = `<strong>📌 Đáp án đúng:</strong> ${q.dapAn}`;
+          block.appendChild(fullAnswer);
+        } else if (result.percent >= 50 && !troGiupUsed) {
+          helpBtn.disabled = false;
+          helpBtn.style.opacity = "1";
+        }
+      }, 300);
+    }
   };
 
   helpBtn.onclick = () => {
-    const answerWords = normalize(q.dapAn).split(" ");
     for (let i = 0; i < answerWords.length; i++) {
       if (!accumulatedMatched[i]) {
         accumulatedMatched[i] = answerWords[i];
@@ -213,9 +242,32 @@ function renderQuestion(q, index) {
 
     const updated = accumulatedMatched.map((w) => w || "___").join(" ");
     accumulatedLine.innerHTML = `<strong>Đáp án tích lũy:</strong> ${updated}`;
+
+    const correctNow = accumulatedMatched.filter(
+      (w, i) => w === answerWords[i]
+    ).length;
+    const newPercent = Math.round((correctNow / answerWords.length) * 100);
+    match.innerHTML += `<br><em>➡️ Sau trợ giúp: ${newPercent}%</em>`;
+
+    if (newPercent >= 70) {
+      clearInterval(timerInterval);
+      nextBtn.disabled = false;
+      replayBtn.disabled = false;
+      replayBtn.style.opacity = "1";
+      finished = true;
+
+      const fullAnswer = document.createElement("div");
+      fullAnswer.innerHTML = `<strong>📌 Đáp án đúng:</strong> ${q.dapAn}`;
+      block.appendChild(fullAnswer);
+    }
+
     troGiupUsed = true;
     helpBtn.disabled = true;
     helpBtn.style.opacity = "0.5";
+  };
+
+  replayBtn.onclick = () => {
+    speak(q.dapAn);
   };
 
   nextBtn.onclick = () => {
