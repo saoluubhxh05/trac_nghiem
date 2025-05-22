@@ -1,3 +1,4 @@
+// ✅ select.js đã thêm chọn ngôn ngữ và lọc theo ngôn ngữ
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
 import {
   getFirestore,
@@ -17,9 +18,56 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 
+let questions = [];
+
+function shuffleArray(array) {
+  const arr = array.slice();
+  for (let i = arr.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [arr[i], arr[j]] = [arr[j], arr[i]];
+  }
+  return arr;
+}
+
+function renderChuDeTheoBoLoc() {
+  const monHoc = document.getElementById("monHoc").value;
+  const loai = document.getElementById("loai").value;
+  const language = document.getElementById("ngonNgu").value;
+  const chuDeContainer = document.getElementById("chuDeContainer");
+  chuDeContainer.innerHTML = "";
+
+  const chuDeMap = new Map();
+  questions
+    .filter(
+      (q) => q.monHoc === monHoc && q.loai === loai && q.language === language
+    )
+    .forEach((q) => {
+      chuDeMap.set(q.chuDe, (chuDeMap.get(q.chuDe) || 0) + 1);
+    });
+
+  if (chuDeMap.size === 0) {
+    chuDeContainer.innerHTML = `<p style="color:red;">❌ Không có chủ đề nào phù hợp với bộ lọc.</p>`;
+    return;
+  }
+
+  chuDeMap.forEach((count, cd) => {
+    const row = document.createElement("div");
+    row.style.marginBottom = "8px";
+    row.innerHTML = `
+      <label>
+        <input type="checkbox" value="${cd}" data-max="${count}" class="chu-de-checkbox" />
+        ${cd}
+      </label>
+      <input type="number" class="so-cau-input" value="${count}" min="1" max="${count}" style="width: 60px; margin-left: 10px;" />
+      <span style="font-size: 12px; color: gray;">(Tối đa: ${count})</span>
+    `;
+    chuDeContainer.appendChild(row);
+  });
+}
+
 document.addEventListener("DOMContentLoaded", async () => {
   const snapshot = await getDocs(collection(db, "questions"));
-  const questions = snapshot.docs.map((doc) => doc.data());
+  questions = snapshot.docs.map((doc) => doc.data());
   window.questions = questions;
 
   if (!questions.length) {
@@ -29,6 +77,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 
   const monHocSelect = document.getElementById("monHoc");
   const loaiSelect = document.getElementById("loai");
+  const ngonNguSelect = document.getElementById("ngonNgu");
 
   const monHocSet = new Set();
   questions.forEach((q) => monHocSet.add(q.monHoc));
@@ -60,6 +109,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 
   if (saved.loai) loaiSelect.value = saved.loai;
   if (saved.thuTu) document.getElementById("thuTu").value = saved.thuTu;
+  if (saved.language) ngonNguSelect.value = saved.language;
 
   renderChuDeTheoBoLoc();
 
@@ -67,37 +117,13 @@ document.addEventListener("DOMContentLoaded", async () => {
     updateLoaiSelect(monHocSelect.value);
     renderChuDeTheoBoLoc();
   });
-
   loaiSelect.addEventListener("change", renderChuDeTheoBoLoc);
-
-  setTimeout(() => {
-    if (saved.chuDe) {
-      saved.chuDe.forEach(({ chuDe, soCau }) => {
-        const chk = document.querySelector(
-          `.chu-de-checkbox[value="${chuDe}"]`
-        );
-        if (chk) {
-          chk.checked = true;
-          const input =
-            chk.parentElement.parentElement.querySelector(".so-cau-input");
-          if (input) input.value = soCau;
-        }
-      });
-    }
-
-    if (saved.loaiBaiTapList) {
-      saved.loaiBaiTapList.forEach((lb) => {
-        const cb = document.querySelector(
-          `#loaiBaiTapContainer input[value="${lb}"]`
-        );
-        if (cb) cb.checked = true;
-      });
-    }
-  }, 100);
+  ngonNguSelect.addEventListener("change", renderChuDeTheoBoLoc);
 
   document.getElementById("batDauBtn").addEventListener("click", () => {
     const monHoc = monHocSelect.value;
     const loai = loaiSelect.value;
+    const language = ngonNguSelect.value;
     const thuTu = document.getElementById("thuTu").value;
 
     const loaiBaiTapEls = document.querySelectorAll(
@@ -120,6 +146,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     const savedSettings = {
       monHoc,
       loai,
+      language,
       loaiBaiTapList,
       thuTu,
       chuDe: Array.from(chuDeCheckboxes).map((chk) => {
@@ -142,18 +169,22 @@ document.addEventListener("DOMContentLoaded", async () => {
       let filtered;
       if (loaiBaiTapList.includes("combo")) {
         filtered = questions.filter(
-          (q) => q.monHoc === monHoc && q.chuDe === chuDe
+          (q) =>
+            q.monHoc === monHoc && q.chuDe === chuDe && q.language === language
         );
       } else {
         filtered = questions.filter(
-          (q) => q.monHoc === monHoc && q.loai === loai && q.chuDe === chuDe
+          (q) =>
+            q.monHoc === monHoc &&
+            q.loai === loai &&
+            q.chuDe === chuDe &&
+            q.language === language
         );
       }
 
       if (thuTu === "ngaunhien") {
         filtered = shuffleArray(filtered);
       } else {
-        // ✅ Sắp xếp theo stt nếu có
         filtered = filtered.sort((a, b) => (a.stt || 0) - (b.stt || 0));
       }
 
@@ -172,56 +203,11 @@ document.addEventListener("DOMContentLoaded", async () => {
       JSON.stringify(selectedQuestions)
     );
 
-    // ✅ Lưu thời gian mỗi câu cho bài tập "Luyện dịch"
     const translateTimeInput = document.getElementById("translateTime");
     if (translateTimeInput) {
       localStorage.setItem("translateTime", translateTimeInput.value);
     }
 
-    // ✅ Điều hướng
     window.location.href = `${loaiBaiTapList[0]}.html`;
   });
 });
-
-function shuffleArray(array) {
-  const arr = array.slice();
-  for (let i = arr.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1));
-    [arr[i], arr[j]] = [arr[j], arr[i]];
-  }
-  return arr;
-}
-
-function renderChuDeTheoBoLoc() {
-  const monHoc = document.getElementById("monHoc").value;
-  const loai = document.getElementById("loai").value;
-  const chuDeContainer = document.getElementById("chuDeContainer");
-  chuDeContainer.innerHTML = "";
-
-  const chuDeMap = new Map();
-  window.questions
-    .filter((q) => q.monHoc === monHoc && q.loai === loai)
-    .sort((a, b) => (a.stt || 0) - (b.stt || 0)) // ✅ Sắp xếp theo STT
-    .forEach((q) => {
-      chuDeMap.set(q.chuDe, (chuDeMap.get(q.chuDe) || 0) + 1);
-    });
-
-  if (chuDeMap.size === 0) {
-    chuDeContainer.innerHTML = `<p style="color:red;">❌ Không có chủ đề nào phù hợp với môn "${monHoc}" và loại "${loai}".</p>`;
-    return;
-  }
-
-  chuDeMap.forEach((count, cd) => {
-    const row = document.createElement("div");
-    row.style.marginBottom = "8px";
-    row.innerHTML = `
-      <label>
-        <input type="checkbox" value="${cd}" data-max="${count}" class="chu-de-checkbox" />
-        ${cd}
-      </label>
-      <input type="number" class="so-cau-input" value="${count}" min="1" max="${count}" style="width: 60px; margin-left: 10px;" />
-      <span style="font-size: 12px; color: gray;">(Tối đa: ${count})</span>
-    `;
-    chuDeContainer.appendChild(row);
-  });
-}
