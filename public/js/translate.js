@@ -72,12 +72,6 @@ function renderQuestion(q, index) {
   const block = document.createElement("div");
   block.className = "question-block";
   block.id = `cau-${index}`; // ✅ để scroll tới đúng phần tử
-  const progress = document.createElement("div");
-  progress.className = "question-progress";
-  progress.style.marginBottom = "6px";
-  progress.style.fontWeight = "bold";
-  progress.textContent = `📌 Câu ${index + 1} / ${questions.length}`;
-  block.appendChild(progress);
 
   const vi = document.createElement("div");
   vi.className = "translate-box";
@@ -169,12 +163,7 @@ function renderQuestion(q, index) {
             replayBtn.disabled = false;
             replayBtn.style.opacity = "1";
           } else {
-            // ✅ Thêm vào mustRedo nếu dưới 70%
-            mustRedo.push(q);
-            localStorage.setItem("mustRedo", JSON.stringify(mustRedo));
-
             retryMode = true;
-
             retryCount = 0;
             retryScores = [];
 
@@ -267,6 +256,8 @@ function renderQuestion(q, index) {
               nextBtn.disabled = false;
               finished = true;
             } else {
+              mustRedo.push(q);
+              localStorage.setItem("mustRedo", JSON.stringify(mustRedo));
               nextBtn.disabled = false;
               finished = true;
             }
@@ -335,13 +326,11 @@ function renderQuestion(q, index) {
 
   nextBtn.onclick = () => {
     currentIndex++;
-
     if (currentIndex < questions.length) {
-      container.innerHTML = "";
       renderQuestion(questions[currentIndex], currentIndex);
     } else {
       const done = document.createElement("div");
-      const redoList = JSON.parse(localStorage.getItem("mustRedo") || "[]");
+      let redoList = JSON.parse(localStorage.getItem("mustRedo") || "[]");
 
       let content = `<h2>🎉 Bạn đã hoàn thành bài luyện dịch!</h2>`;
       if (redoList.length > 0) {
@@ -353,30 +342,6 @@ function renderQuestion(q, index) {
       }
 
       done.innerHTML = content;
-
-      if (redoList.length > 0) {
-        const retryBtn = document.createElement("button");
-        retryBtn.textContent = "🔁 Làm lại các câu sai";
-        retryBtn.style.marginTop = "12px";
-        retryBtn.style.padding = "10px 20px";
-        retryBtn.style.fontSize = "16px";
-        retryBtn.style.backgroundColor = "#007bff";
-        retryBtn.style.color = "white";
-        retryBtn.style.border = "none";
-        retryBtn.style.borderRadius = "8px";
-        retryBtn.style.cursor = "pointer";
-
-        retryBtn.onclick = () => {
-          currentIndex = 0;
-          localStorage.setItem("selectedQuestions", JSON.stringify(redoList));
-          localStorage.removeItem("mustRedo");
-          container.innerHTML = "";
-          renderQuestion(redoList[currentIndex], currentIndex);
-        };
-
-        done.appendChild(retryBtn);
-      }
-
       localStorage.removeItem("mustRedo");
       container.appendChild(done);
     }
