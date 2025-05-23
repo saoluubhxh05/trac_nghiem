@@ -159,26 +159,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     renderChuDeTheoBoLoc();
   });
   loaiSelect.addEventListener("change", renderChuDeTheoBoLoc);
-  ngonNguSelect.addEventListener("change", () => {
-    const language = ngonNguSelect.value;
-
-    // Lọc lại danh sách Môn học theo ngôn ngữ
-    const monHocSet = new Set();
-    questions.forEach((q) => {
-      if (q.language === language) monHocSet.add(q.monHoc);
-    });
-    monHocSelect.innerHTML = "";
-    [...monHocSet].forEach((mh) => {
-      const opt = document.createElement("option");
-      opt.value = opt.textContent = mh;
-      monHocSelect.appendChild(opt);
-    });
-
-    // Cập nhật Loại & Chủ đề theo Môn học đầu tiên
-    const firstMonHoc = monHocSelect.value;
-    updateLoaiSelect(firstMonHoc);
-    renderChuDeTheoBoLoc();
-  });
+  ngonNguSelect.addEventListener("change", khoiTaoDuLieuTheoNgonNgu);
 
   document.getElementById("batDauBtn").addEventListener("click", () => {
     const monHoc = monHocSelect.value;
