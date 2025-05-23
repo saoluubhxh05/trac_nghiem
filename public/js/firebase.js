@@ -43,7 +43,7 @@ export function initFirebaseAuth() {
       <button id="logoutBtn">🚪 Thoát</button>
     </div>
   `;
-  document.body.appendChild(loginDiv);
+  document.getElementById("loginArea")?.appendChild(loginDiv);
 
   const loginBtn = document.getElementById("loginBtn");
   const userMenu = document.getElementById("userMenu");
