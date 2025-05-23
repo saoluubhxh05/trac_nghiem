@@ -129,45 +129,6 @@ document.addEventListener("DOMContentLoaded", async () => {
 
   khoiTaoDuLieuTheoNgonNgu();
 
-  const monHocSet = new Set();
-  questions.forEach((q) => monHocSet.add(q.monHoc));
-  [...monHocSet].forEach((mh) => {
-    const opt = document.createElement("option");
-    opt.value = opt.textContent = mh;
-    monHocSelect.appendChild(opt);
-  });
-
-  function updateLoaiSelect(monHoc) {
-    loaiSelect.innerHTML = "";
-    const loaiSet = new Set();
-    const language = document.getElementById("ngonNgu").value;
-
-    questions.forEach((q) => {
-      if (q.monHoc === monHoc && q.language === language) {
-        loaiSet.add(q.loai);
-      }
-    });
-
-    [...loaiSet].forEach((l) => {
-      const opt = document.createElement("option");
-      opt.value = opt.textContent = l;
-      loaiSelect.appendChild(opt);
-    });
-  }
-
-  const saved = JSON.parse(localStorage.getItem("quizSettings") || "{}");
-  const initialMonHoc = saved.monHoc || monHocSelect.options[0]?.value;
-  if (initialMonHoc) {
-    monHocSelect.value = initialMonHoc;
-    updateLoaiSelect(initialMonHoc);
-  }
-
-  if (saved.loai) loaiSelect.value = saved.loai;
-  if (saved.thuTu) document.getElementById("thuTu").value = saved.thuTu;
-  if (saved.language) ngonNguSelect.value = saved.language;
-
-  renderChuDeTheoBoLoc();
-
   monHocSelect.addEventListener("change", () => {
     updateLoaiSelect(monHocSelect.value);
     renderChuDeTheoBoLoc();
