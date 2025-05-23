@@ -19,6 +19,51 @@ const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 
 let questions = [];
+function khoiTaoDuLieuTheoNgonNgu() {
+  const ngonNguSelect = document.getElementById("ngonNgu");
+  const monHocSelect = document.getElementById("monHoc");
+  const loaiSelect = document.getElementById("loai");
+
+  const language = ngonNguSelect.value;
+
+  // ✅ Lọc lại danh sách Môn học theo ngôn ngữ
+  const monHocSet = new Set();
+  questions.forEach((q) => {
+    if (q.language === language) monHocSet.add(q.monHoc);
+  });
+
+  monHocSelect.innerHTML = "";
+  [...monHocSet].forEach((mh) => {
+    const opt = document.createElement("option");
+    opt.value = opt.textContent = mh;
+    monHocSelect.appendChild(opt);
+  });
+
+  // ✅ Gán Môn học đầu tiên nếu chưa có
+  const firstMonHoc = monHocSelect.options[0]?.value || "";
+  monHocSelect.value = firstMonHoc;
+
+  // ✅ Cập nhật danh sách Loại theo Môn học và Ngôn ngữ
+  loaiSelect.innerHTML = "";
+  const loaiSet = new Set();
+  questions.forEach((q) => {
+    if (q.monHoc === firstMonHoc && q.language === language) {
+      loaiSet.add(q.loai);
+    }
+  });
+  [...loaiSet].forEach((l) => {
+    const opt = document.createElement("option");
+    opt.value = opt.textContent = l;
+    loaiSelect.appendChild(opt);
+  });
+
+  // ✅ Gán loại đầu tiên nếu chưa có
+  const firstLoai = loaiSelect.options[0]?.value || "";
+  loaiSelect.value = firstLoai;
+
+  // ✅ Cập nhật chủ đề tương ứng
+  renderChuDeTheoBoLoc();
+}
 
 function shuffleArray(array) {
   const arr = array.slice();
@@ -81,6 +126,8 @@ document.addEventListener("DOMContentLoaded", async () => {
   const monHocSelect = document.getElementById("monHoc");
   const loaiSelect = document.getElementById("loai");
   const ngonNguSelect = document.getElementById("ngonNgu");
+
+  khoiTaoDuLieuTheoNgonNgu();
 
   const monHocSet = new Set();
   questions.forEach((q) => monHocSet.add(q.monHoc));
