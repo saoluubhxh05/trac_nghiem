@@ -1,4 +1,5 @@
 import { speak } from "./speech-util.js";
+import { langToLocale, normalize, splitWords } from "./lang-util.js";
 
 const questions = JSON.parse(localStorage.getItem("selectedQuestions") || "[]");
 if (!questions.length) {
@@ -21,9 +22,9 @@ function normalize(text) {
     .trim();
 }
 
-function compareWords(userText, answer) {
-  const userWords = normalize(userText).split(" ");
-  const answerWords = normalize(answer).split(" ");
+function compareWords(userText, answer, lang = "en") {
+  const userWords = splitWords(normalize(userText, lang), lang);
+  const answerWords = splitWords(normalize(answer, lang), lang);
   let correct = 0;
 
   const revealed = answerWords.map((w, i) => {
@@ -42,7 +43,6 @@ function compareWords(userText, answer) {
     accumulated: accumulatedMatched.map((w) => w || "___").join(" "),
   };
 }
-
 function startSpeechRecognition(onResult) {
   const SpeechRecognition =
     window.SpeechRecognition || window.webkitSpeechRecognition;
@@ -69,6 +69,7 @@ function startSpeechRecognition(onResult) {
 }
 
 function renderQuestion(q, index) {
+  const lang = q.language || localStorage.getItem("language") || "en";
   const block = document.createElement("div");
   block.className = "question-block";
   block.id = `cau-${index}`; // ✅ để scroll tới đúng phần tử
@@ -142,7 +143,8 @@ function renderQuestion(q, index) {
   let retryScores = [];
   let mustRedo = JSON.parse(localStorage.getItem("mustRedo") || "[]");
 
-  const answerWords = normalize(q.dapAn).split(" ");
+  const answerWords = splitWords(normalize(q.dapAn, lang), lang);
+
   accumulatedMatched = new Array(answerWords.length).fill("");
 
   function resetTimer() {
@@ -196,7 +198,8 @@ function renderQuestion(q, index) {
 
     if (!recognition) {
       recognition = new SpeechRecognition();
-      recognition.lang = "en-US";
+      recognition.lang = langToLocale(lang); // ví dụ zh → zh-CN, ja → ja-JP
+
       recognition.interimResults = true;
     }
 
@@ -227,7 +230,8 @@ function renderQuestion(q, index) {
           return;
         }
 
-        const result = compareWords(finalTranscript, q.dapAn);
+        const result = compareWords(finalTranscript, q.dapAn, lang);
+
         spoken.innerHTML = `<strong>Bạn nói:</strong> "${finalTranscript}"`;
         match.innerHTML = `<strong>✅ Đúng:</strong> ${result.revealed}<br>🎯 <strong>Độ khớp:</strong> ${result.percent}%`;
         accumulatedLine.innerHTML = `<strong>Đáp án tích lũy:</strong> ${result.accumulated}`;
@@ -327,7 +331,7 @@ function renderQuestion(q, index) {
   };
 
   replayBtn.onclick = () => {
-    speak(q.dapAn);
+    speak(q.dapAn, lang);
   };
 
   nextBtn.onclick = () => {

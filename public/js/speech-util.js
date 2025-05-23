@@ -1,11 +1,17 @@
+// ✅ speech-util.js: hỗ trợ phát âm đa ngôn ngữ
+import { langToLocale } from "./lang-util.js";
+
 let isMuted = false;
 
-export function speak(text) {
+export function speak(text, lang = "en") {
   if (isMuted) return;
   const synth = window.speechSynthesis;
   const utter = new SpeechSynthesisUtterance(text);
-  utter.lang = "en-US";
-  synth.cancel(); // dừng cái cũ nếu còn
+
+  // ✅ Dùng ngôn ngữ phù hợp
+  utter.lang = langToLocale(lang);
+
+  synth.cancel(); // dừng giọng cũ nếu còn
   synth.speak(utter);
 }
 
