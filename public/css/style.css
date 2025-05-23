@@ -159,3 +159,7 @@ input[type="number"] {
     font-size: 0.95rem;
   }
 }
+.question-progress {
+  font-size: 1.1rem;
+  color: #333;
+}
