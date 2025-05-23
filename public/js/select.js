@@ -25,7 +25,12 @@ function khoiTaoDuLieuTheoNgonNgu() {
   const loaiSelect = document.getElementById("loai");
 
   const saved = JSON.parse(localStorage.getItem("quizSettings") || "{}");
-  if (saved.language) ngonNguSelect.value = saved.language;
+  // ✅ Thêm đoạn kiểm tra này ngay sau dòng trên
+  if (saved.language && questions.some((q) => q.language === saved.language)) {
+    ngonNguSelect.value = saved.language;
+  } else {
+    localStorage.removeItem("quizSettings");
+  }
 
   const language = ngonNguSelect.value;
 
