@@ -347,6 +347,28 @@ function renderQuestion(q, index) {
         });
         content += `</ul>`;
       }
+      if (redoList.length > 0) {
+        const retryBtn = document.createElement("button");
+        retryBtn.textContent = "🔁 Làm lại các câu sai";
+        retryBtn.style.marginTop = "12px";
+        retryBtn.style.padding = "10px 20px";
+        retryBtn.style.fontSize = "16px";
+        retryBtn.style.backgroundColor = "#007bff";
+        retryBtn.style.color = "white";
+        retryBtn.style.border = "none";
+        retryBtn.style.borderRadius = "8px";
+        retryBtn.style.cursor = "pointer";
+
+        retryBtn.onclick = () => {
+          currentIndex = 0;
+          localStorage.setItem("selectedQuestions", JSON.stringify(redoList));
+          localStorage.removeItem("mustRedo");
+          container.innerHTML = ""; // clear lại
+          renderQuestion(redoList[currentIndex], currentIndex); // render lại
+        };
+
+        done.appendChild(retryBtn);
+      }
 
       done.innerHTML = content;
       localStorage.removeItem("mustRedo");
