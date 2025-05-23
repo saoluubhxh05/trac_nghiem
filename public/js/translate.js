@@ -169,7 +169,12 @@ function renderQuestion(q, index) {
             replayBtn.disabled = false;
             replayBtn.style.opacity = "1";
           } else {
+            // ✅ Thêm vào mustRedo nếu dưới 70%
+            mustRedo.push(q);
+            localStorage.setItem("mustRedo", JSON.stringify(mustRedo));
+
             retryMode = true;
+
             retryCount = 0;
             retryScores = [];
 
@@ -262,8 +267,6 @@ function renderQuestion(q, index) {
               nextBtn.disabled = false;
               finished = true;
             } else {
-              mustRedo.push(q);
-              localStorage.setItem("mustRedo", JSON.stringify(mustRedo));
               nextBtn.disabled = false;
               finished = true;
             }
