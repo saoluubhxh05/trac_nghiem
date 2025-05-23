@@ -21,7 +21,6 @@ const firebaseConfig = {
   measurementId: "G-R1694J34HS",
 };
 
-// 👉 Chỉ khởi tạo Firebase 1 lần
 const app =
   getApps().length === 0 ? initializeApp(firebaseConfig) : getApps()[0];
 
@@ -29,62 +28,67 @@ const auth = getAuth(app);
 const provider = new GoogleAuthProvider();
 
 export function initFirebaseAuth() {
-  const loginDiv = document.createElement("div");
-  loginDiv.id = "loginWidget";
-  loginDiv.style.position = "absolute";
-  loginDiv.style.top = "10px";
-  loginDiv.style.right = "10px";
+  const interval = setInterval(() => {
+    const loginArea = document.getElementById("loginArea");
+    if (!loginArea) return;
+    clearInterval(interval);
 
-  loginDiv.innerHTML = `
-    <button id="loginBtn">🔐 Đăng nhập</button>
-    <div id="userMenu" style="display: none; align-items: center; gap: 8px;">
-      <img id="userAvatar" style="width: 36px; height: 36px; border-radius: 50%" />
-      <span id="userName" style="font-weight: bold;"></span>
-      <button id="logoutBtn">🚪 Thoát</button>
-    </div>
-  `;
-  document.getElementById("loginArea")?.appendChild(loginDiv);
+    // Tạo login widget
+    const loginDiv = document.createElement("div");
+    loginDiv.id = "loginWidget";
 
-  const loginBtn = document.getElementById("loginBtn");
-  const userMenu = document.getElementById("userMenu");
-  const userName = document.getElementById("userName");
-  const userAvatar = document.getElementById("userAvatar");
-  const logoutBtn = document.getElementById("logoutBtn");
+    loginDiv.innerHTML = `
+      <button id="loginBtn">🔐 Đăng nhập</button>
+      <div id="userMenu" style="display: none; align-items: center; gap: 8px;">
+        <img id="userAvatar" style="width: 36px; height: 36px; border-radius: 50%" />
+        <span id="userName" style="font-weight: bold;"></span>
+        <button id="logoutBtn">🚪 Thoát</button>
+      </div>
+    `;
+    loginArea.appendChild(loginDiv);
 
-  loginBtn.addEventListener("click", () => {
-    signInWithPopup(auth, provider)
-      .then((result) => {
-        const user = result.user;
-        localStorage.setItem(
-          "userInfo",
-          JSON.stringify({
-            name: user.displayName,
-            email: user.email,
-            photo: user.photoURL,
-          })
-        );
-      })
-      .catch((error) => {
-        alert("Lỗi đăng nhập: " + error.message);
-      });
-  });
+    // Gắn sự kiện
+    const loginBtn = document.getElementById("loginBtn");
+    const userMenu = document.getElementById("userMenu");
+    const userName = document.getElementById("userName");
+    const userAvatar = document.getElementById("userAvatar");
+    const logoutBtn = document.getElementById("logoutBtn");
 
-  logoutBtn.addEventListener("click", () => {
-    signOut(auth).then(() => {
-      localStorage.removeItem("userInfo");
-      location.reload();
+    loginBtn.addEventListener("click", () => {
+      signInWithPopup(auth, provider)
+        .then((result) => {
+          const user = result.user;
+          localStorage.setItem(
+            "userInfo",
+            JSON.stringify({
+              name: user.displayName,
+              email: user.email,
+              photo: user.photoURL,
+            })
+          );
+        })
+        .catch((error) => {
+          alert("Lỗi đăng nhập: " + error.message);
+        });
     });
-  });
 
-  onAuthStateChanged(auth, (user) => {
-    if (user) {
-      loginBtn.style.display = "none";
-      userMenu.style.display = "flex";
-      userName.textContent = user.displayName;
-      userAvatar.src = user.photoURL;
-    } else {
-      loginBtn.style.display = "inline-block";
-      userMenu.style.display = "none";
-    }
-  });
+    logoutBtn.addEventListener("click", () => {
+      signOut(auth).then(() => {
+        localStorage.removeItem("userInfo");
+        location.reload();
+      });
+    });
+
+    onAuthStateChanged(auth, (user) => {
+      if (user) {
+        loginBtn.style.display = "none";
+        userMenu.style.display = "flex";
+        userName.textContent = user.displayName;
+        userAvatar.src = user.photoURL;
+      } else {
+        loginBtn.style.display = "inline-block";
+        userMenu.style.display = "none";
+      }
+    });
+  }, 100);
 }
