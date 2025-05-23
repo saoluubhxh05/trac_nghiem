@@ -338,7 +338,17 @@ function renderQuestion(q, index) {
       renderQuestion(questions[currentIndex], currentIndex); // ✅ Hiển thị câu mới
     } else {
       const done = document.createElement("div");
-      const redoList = JSON.parse(localStorage.getItem("mustRedo") || "[]");
+      let redoList = JSON.parse(localStorage.getItem("mustRedo") || "[]");
+
+      // ✅ Loại bỏ câu nào đã hoàn thành đúng (có độ khớp >= 70%)
+      redoList = redoList.filter((q) => {
+        const userProgress = normalize(q.dapAn)
+          .split(" ")
+          .map((w, i) => (accumulatedMatched[i] !== w ? "___" : w));
+        const correct = userProgress.filter((w) => w !== "___").length;
+        const percent = Math.round((correct / userProgress.length) * 100);
+        return percent < 70;
+      });
 
       let content = `<h2>🎉 Bạn đã hoàn thành bài luyện dịch!</h2>`;
 
