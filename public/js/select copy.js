@@ -24,9 +24,19 @@ function khoiTaoDuLieuTheoNgonNgu() {
   const monHocSelect = document.getElementById("monHoc");
   const loaiSelect = document.getElementById("loai");
 
+  const saved = JSON.parse(localStorage.getItem("quizSettings") || "{}");
+  // ✅ Thêm đoạn kiểm tra này ngay sau dòng trên
+  if (saved.language && questions.some((q) => q.language === saved.language)) {
+    ngonNguSelect.value = saved.language;
+  } else {
+    ngonNguSelect.value = ngonNguSelect.options[0]?.value || "";
+    // 🧹 reset settings liên quan nếu ngôn ngữ không khớp
+    localStorage.removeItem("quizSettings");
+  }
+
   const language = ngonNguSelect.value;
 
-  // ✅ Lọc lại danh sách Môn học theo ngôn ngữ
+  // ✅ Tạo danh sách Môn học
   const monHocSet = new Set();
   questions.forEach((q) => {
     if (q.language === language) monHocSet.add(q.monHoc);
@@ -39,30 +49,58 @@ function khoiTaoDuLieuTheoNgonNgu() {
     monHocSelect.appendChild(opt);
   });
 
-  // ✅ Gán Môn học đầu tiên nếu chưa có
-  const firstMonHoc = monHocSelect.options[0]?.value || "";
-  monHocSelect.value = firstMonHoc;
+  const monHoc = [...monHocSet].includes(saved.monHoc)
+    ? saved.monHoc
+    : monHocSelect.options[0]?.value || "";
 
-  // ✅ Cập nhật danh sách Loại theo Môn học và Ngôn ngữ
-  loaiSelect.innerHTML = "";
+  monHocSelect.value = monHoc;
+
+  // ✅ Tạo danh sách Loại
   const loaiSet = new Set();
   questions.forEach((q) => {
-    if (q.monHoc === firstMonHoc && q.language === language) {
-      loaiSet.add(q.loai);
-    }
+    if (q.monHoc === monHoc && q.language === language) loaiSet.add(q.loai);
   });
+
+  loaiSelect.innerHTML = "";
   [...loaiSet].forEach((l) => {
     const opt = document.createElement("option");
     opt.value = opt.textContent = l;
     loaiSelect.appendChild(opt);
   });
 
-  // ✅ Gán loại đầu tiên nếu chưa có
-  const firstLoai = loaiSelect.options[0]?.value || "";
-  loaiSelect.value = firstLoai;
+  const loai = [...loaiSet].includes(saved.loai)
+    ? saved.loai
+    : loaiSelect.options[0]?.value || "";
 
-  // ✅ Cập nhật chủ đề tương ứng
+  loaiSelect.value = loai;
+
+  if (saved.thuTu) {
+    document.getElementById("thuTu").value = saved.thuTu;
+  }
+
   renderChuDeTheoBoLoc();
+}
+function updateLoaiSelect(monHoc) {
+  const loaiSelect = document.getElementById("loai");
+  const ngonNguSelect = document.getElementById("ngonNgu");
+  const language = ngonNguSelect.value;
+
+  const loaiSet = new Set();
+  questions.forEach((q) => {
+    if (q.monHoc === monHoc && q.language === language) {
+      loaiSet.add(q.loai);
+    }
+  });
+
+  loaiSelect.innerHTML = "";
+  [...loaiSet].forEach((l) => {
+    const opt = document.createElement("option");
+    opt.value = opt.textContent = l;
+    loaiSelect.appendChild(opt);
+  });
+
+  // ✅ Gán loại đầu tiên nếu tồn tại
+  loaiSelect.value = loaiSelect.options[0]?.value || "";
 }
 
 function shuffleArray(array) {
@@ -129,70 +167,12 @@ document.addEventListener("DOMContentLoaded", async () => {
 
   khoiTaoDuLieuTheoNgonNgu();
 
-  const monHocSet = new Set();
-  questions.forEach((q) => monHocSet.add(q.monHoc));
-  [...monHocSet].forEach((mh) => {
-    const opt = document.createElement("option");
-    opt.value = opt.textContent = mh;
-    monHocSelect.appendChild(opt);
-  });
-
-  function updateLoaiSelect(monHoc) {
-    loaiSelect.innerHTML = "";
-    const loaiSet = new Set();
-    const language = document.getElementById("ngonNgu").value;
-
-    questions.forEach((q) => {
-      if (q.monHoc === monHoc && q.language === language) {
-        loaiSet.add(q.loai);
-      }
-    });
-
-    [...loaiSet].forEach((l) => {
-      const opt = document.createElement("option");
-      opt.value = opt.textContent = l;
-      loaiSelect.appendChild(opt);
-    });
-  }
-
-  const saved = JSON.parse(localStorage.getItem("quizSettings") || "{}");
-  const initialMonHoc = saved.monHoc || monHocSelect.options[0]?.value;
-  if (initialMonHoc) {
-    monHocSelect.value = initialMonHoc;
-    updateLoaiSelect(initialMonHoc);
-  }
-
-  if (saved.loai) loaiSelect.value = saved.loai;
-  if (saved.thuTu) document.getElementById("thuTu").value = saved.thuTu;
-  if (saved.language) ngonNguSelect.value = saved.language;
-
-  renderChuDeTheoBoLoc();
-
   monHocSelect.addEventListener("change", () => {
     updateLoaiSelect(monHocSelect.value);
     renderChuDeTheoBoLoc();
   });
   loaiSelect.addEventListener("change", renderChuDeTheoBoLoc);
-  ngonNguSelect.addEventListener("change", () => {
-    const language = ngonNguSelect.value;
-
-    // Lọc lại danh sách Môn học theo ngôn ngữ
-    const monHocSet = new Set();
-    questions.forEach((q) => {
-      if (q.language === language) monHocSet.add(q.monHoc);
-    });
-    monHocSelect.innerHTML = "";
-    [...monHocSet].forEach((mh) => {
-      const opt = document.createElement("option");
-      opt.value = opt.textContent = mh;
-      monHocSelect.appendChild(opt);
-    });
-
-    // Cập nhật Loại & Chủ đề theo Môn học đầu tiên
-    const firstMonHoc = monHocSelect.value;
-    updateLoaiSelect(firstMonHoc);
-    renderChuDeTheoBoLoc();
-  });
+  ngonNguSelect.addEventListener("change", khoiTaoDuLieuTheoNgonNgu);
 
   document.getElementById("batDauBtn").addEventListener("click", () => {
     const monHoc = monHocSelect.value;
