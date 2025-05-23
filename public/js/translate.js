@@ -15,13 +15,6 @@ let recognition;
 let timerInterval;
 let accumulatedMatched = [];
 
-function normalize(text) {
-  return text
-    .toLowerCase()
-    .replace(/[.,!?]/g, "")
-    .trim();
-}
-
 function compareWords(userText, answer, lang = "en") {
   const userWords = splitWords(normalize(userText, lang), lang);
   const answerWords = splitWords(normalize(answer, lang), lang);
