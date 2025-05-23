@@ -332,14 +332,16 @@ function renderQuestion(q, index) {
 
   nextBtn.onclick = () => {
     currentIndex++;
+
     if (currentIndex < questions.length) {
-      container.innerHTML = ""; // ✅ Xóa toàn bộ câu cũ
-      renderQuestion(questions[currentIndex], currentIndex);
+      container.innerHTML = ""; // ✅ Xoá toàn bộ câu cũ
+      renderQuestion(questions[currentIndex], currentIndex); // ✅ Hiển thị câu mới
     } else {
       const done = document.createElement("div");
-      let redoList = JSON.parse(localStorage.getItem("mustRedo") || "[]");
+      const redoList = JSON.parse(localStorage.getItem("mustRedo") || "[]");
 
       let content = `<h2>🎉 Bạn đã hoàn thành bài luyện dịch!</h2>`;
+
       if (redoList.length > 0) {
         content += `<p style="color:red"><strong>❌ Các câu cần làm lại:</strong></p><ul>`;
         redoList.forEach((q, i) => {
@@ -347,6 +349,10 @@ function renderQuestion(q, index) {
         });
         content += `</ul>`;
       }
+
+      done.innerHTML = content;
+
+      // ✅ Nếu có câu sai → hiển thị nút làm lại
       if (redoList.length > 0) {
         const retryBtn = document.createElement("button");
         retryBtn.textContent = "🔁 Làm lại các câu sai";
@@ -363,15 +369,14 @@ function renderQuestion(q, index) {
           currentIndex = 0;
           localStorage.setItem("selectedQuestions", JSON.stringify(redoList));
           localStorage.removeItem("mustRedo");
-          container.innerHTML = ""; // clear lại
-          renderQuestion(redoList[currentIndex], currentIndex); // render lại
+          container.innerHTML = "";
+          renderQuestion(redoList[currentIndex], currentIndex);
         };
 
         done.appendChild(retryBtn);
       }
 
-      done.innerHTML = content;
-      localStorage.removeItem("mustRedo");
+      localStorage.removeItem("mustRedo"); // ✅ Xoá sau cùng
       container.appendChild(done);
     }
   };
