@@ -50,19 +50,22 @@ function renderChuDeTheoBoLoc() {
     return;
   }
 
-  chuDeMap.forEach((count, cd) => {
-    const row = document.createElement("div");
-    row.style.marginBottom = "8px";
-    row.innerHTML = `
-      <label>
-        <input type="checkbox" value="${cd}" data-max="${count}" class="chu-de-checkbox" />
-        ${cd}
-      </label>
-      <input type="number" class="so-cau-input" value="${count}" min="1" max="${count}" style="width: 60px; margin-left: 10px;" />
-      <span style="font-size: 12px; color: gray;">(Tối đa: ${count})</span>
-    `;
-    chuDeContainer.appendChild(row);
-  });
+  // ✅ Sắp xếp theo thứ tự bảng chữ cái và số (Unit 1, Unit 2, Unit 10...)
+  [...chuDeMap.entries()]
+    .sort((a, b) => a[0].localeCompare(b[0], "vi", { numeric: true }))
+    .forEach(([cd, count]) => {
+      const row = document.createElement("div");
+      row.style.marginBottom = "8px";
+      row.innerHTML = `
+        <label>
+          <input type="checkbox" value="${cd}" data-max="${count}" class="chu-de-checkbox" />
+          ${cd}
+        </label>
+        <input type="number" class="so-cau-input" value="${count}" min="1" max="${count}" style="width: 60px; margin-left: 10px;" />
+        <span style="font-size: 12px; color: gray;">(Tối đa: ${count})</span>
+      `;
+      chuDeContainer.appendChild(row);
+    });
 }
 
 document.addEventListener("DOMContentLoaded", async () => {
@@ -90,9 +93,14 @@ document.addEventListener("DOMContentLoaded", async () => {
   function updateLoaiSelect(monHoc) {
     loaiSelect.innerHTML = "";
     const loaiSet = new Set();
+    const language = document.getElementById("ngonNgu").value;
+
     questions.forEach((q) => {
-      if (q.monHoc === monHoc) loaiSet.add(q.loai);
+      if (q.monHoc === monHoc && q.language === language) {
+        loaiSet.add(q.loai);
+      }
     });
+
     [...loaiSet].forEach((l) => {
       const opt = document.createElement("option");
       opt.value = opt.textContent = l;
@@ -118,7 +126,26 @@ document.addEventListener("DOMContentLoaded", async () => {
     renderChuDeTheoBoLoc();
   });
   loaiSelect.addEventListener("change", renderChuDeTheoBoLoc);
-  ngonNguSelect.addEventListener("change", renderChuDeTheoBoLoc);
+  ngonNguSelect.addEventListener("change", () => {
+    const language = ngonNguSelect.value;
+
+    // Lọc lại danh sách Môn học theo ngôn ngữ
+    const monHocSet = new Set();
+    questions.forEach((q) => {
+      if (q.language === language) monHocSet.add(q.monHoc);
+    });
+    monHocSelect.innerHTML = "";
+    [...monHocSet].forEach((mh) => {
+      const opt = document.createElement("option");
+      opt.value = opt.textContent = mh;
+      monHocSelect.appendChild(opt);
+    });
+
+    // Cập nhật Loại & Chủ đề theo Môn học đầu tiên
+    const firstMonHoc = monHocSelect.value;
+    updateLoaiSelect(firstMonHoc);
+    renderChuDeTheoBoLoc();
+  });
 
   document.getElementById("batDauBtn").addEventListener("click", () => {
     const monHoc = monHocSelect.value;
