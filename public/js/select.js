@@ -67,6 +67,28 @@ function khoiTaoDuLieuTheoNgonNgu() {
 
   renderChuDeTheoBoLoc();
 }
+function updateLoaiSelect(monHoc) {
+  const loaiSelect = document.getElementById("loai");
+  const ngonNguSelect = document.getElementById("ngonNgu");
+  const language = ngonNguSelect.value;
+
+  const loaiSet = new Set();
+  questions.forEach((q) => {
+    if (q.monHoc === monHoc && q.language === language) {
+      loaiSet.add(q.loai);
+    }
+  });
+
+  loaiSelect.innerHTML = "";
+  [...loaiSet].forEach((l) => {
+    const opt = document.createElement("option");
+    opt.value = opt.textContent = l;
+    loaiSelect.appendChild(opt);
+  });
+
+  // ✅ Gán loại đầu tiên nếu tồn tại
+  loaiSelect.value = loaiSelect.options[0]?.value || "";
+}
 
 function shuffleArray(array) {
   const arr = array.slice();
