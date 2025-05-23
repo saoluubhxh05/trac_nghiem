@@ -29,6 +29,8 @@ function khoiTaoDuLieuTheoNgonNgu() {
   if (saved.language && questions.some((q) => q.language === saved.language)) {
     ngonNguSelect.value = saved.language;
   } else {
+    ngonNguSelect.value = ngonNguSelect.options[0]?.value || "";
+    // 🧹 reset settings liên quan nếu ngôn ngữ không khớp
     localStorage.removeItem("quizSettings");
   }
 
@@ -47,7 +49,10 @@ function khoiTaoDuLieuTheoNgonNgu() {
     monHocSelect.appendChild(opt);
   });
 
-  const monHoc = saved.monHoc || monHocSelect.options[0]?.value || "";
+  const monHoc = [...monHocSet].includes(saved.monHoc)
+    ? saved.monHoc
+    : monHocSelect.options[0]?.value || "";
+
   monHocSelect.value = monHoc;
 
   // ✅ Tạo danh sách Loại
@@ -63,7 +68,10 @@ function khoiTaoDuLieuTheoNgonNgu() {
     loaiSelect.appendChild(opt);
   });
 
-  const loai = saved.loai || loaiSelect.options[0]?.value || "";
+  const loai = [...loaiSet].includes(saved.loai)
+    ? saved.loai
+    : loaiSelect.options[0]?.value || "";
+
   loaiSelect.value = loai;
 
   if (saved.thuTu) {
