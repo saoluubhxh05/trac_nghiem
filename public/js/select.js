@@ -24,9 +24,12 @@ function khoiTaoDuLieuTheoNgonNgu() {
   const monHocSelect = document.getElementById("monHoc");
   const loaiSelect = document.getElementById("loai");
 
+  const saved = JSON.parse(localStorage.getItem("quizSettings") || "{}");
+  if (saved.language) ngonNguSelect.value = saved.language;
+
   const language = ngonNguSelect.value;
 
-  // ✅ Lọc lại danh sách Môn học theo ngôn ngữ
+  // ✅ Tạo danh sách Môn học
   const monHocSet = new Set();
   questions.forEach((q) => {
     if (q.language === language) monHocSet.add(q.monHoc);
@@ -39,29 +42,29 @@ function khoiTaoDuLieuTheoNgonNgu() {
     monHocSelect.appendChild(opt);
   });
 
-  // ✅ Gán Môn học đầu tiên nếu chưa có
-  const firstMonHoc = monHocSelect.options[0]?.value || "";
-  monHocSelect.value = firstMonHoc;
+  const monHoc = saved.monHoc || monHocSelect.options[0]?.value || "";
+  monHocSelect.value = monHoc;
 
-  // ✅ Cập nhật danh sách Loại theo Môn học và Ngôn ngữ
-  loaiSelect.innerHTML = "";
+  // ✅ Tạo danh sách Loại
   const loaiSet = new Set();
   questions.forEach((q) => {
-    if (q.monHoc === firstMonHoc && q.language === language) {
-      loaiSet.add(q.loai);
-    }
+    if (q.monHoc === monHoc && q.language === language) loaiSet.add(q.loai);
   });
+
+  loaiSelect.innerHTML = "";
   [...loaiSet].forEach((l) => {
     const opt = document.createElement("option");
     opt.value = opt.textContent = l;
     loaiSelect.appendChild(opt);
   });
 
-  // ✅ Gán loại đầu tiên nếu chưa có
-  const firstLoai = loaiSelect.options[0]?.value || "";
-  loaiSelect.value = firstLoai;
+  const loai = saved.loai || loaiSelect.options[0]?.value || "";
+  loaiSelect.value = loai;
 
-  // ✅ Cập nhật chủ đề tương ứng
+  if (saved.thuTu) {
+    document.getElementById("thuTu").value = saved.thuTu;
+  }
+
   renderChuDeTheoBoLoc();
 }
 
