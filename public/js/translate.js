@@ -72,6 +72,12 @@ function renderQuestion(q, index) {
   const block = document.createElement("div");
   block.className = "question-block";
   block.id = `cau-${index}`; // ✅ để scroll tới đúng phần tử
+  const progress = document.createElement("div");
+  progress.className = "question-progress";
+  progress.style.marginBottom = "6px";
+  progress.style.fontWeight = "bold";
+  progress.textContent = `📌 Câu ${index + 1} / ${questions.length}`;
+  block.appendChild(progress);
 
   const vi = document.createElement("div");
   vi.className = "translate-box";
@@ -327,6 +333,7 @@ function renderQuestion(q, index) {
   nextBtn.onclick = () => {
     currentIndex++;
     if (currentIndex < questions.length) {
+      container.innerHTML = ""; // ✅ Xóa toàn bộ câu cũ
       renderQuestion(questions[currentIndex], currentIndex);
     } else {
       const done = document.createElement("div");
