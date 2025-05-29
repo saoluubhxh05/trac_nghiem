@@ -28,13 +28,17 @@ export function splitWords(text, lang = "en") {
   }
   return text.split(" ");
 }
-export function compareWords(userText, answer, lang = "en") {
+
+export function compareWords(userText, answer, lang = "en", accumulated = []) {
   const userWords = splitWords(normalize(userText, lang), lang);
   const answerWords = splitWords(normalize(answer, lang), lang);
+
   let correct = 0;
+  const updatedAccumulated = [...accumulated]; // sao chép mảng để không thay đổi trực tiếp
 
   const revealed = answerWords.map((w, i) => {
-    if (userWords.includes(w)) {
+    if (updatedAccumulated[i] === w || userWords.includes(w)) {
+      updatedAccumulated[i] = w;
       correct++;
       return w;
     }
@@ -42,16 +46,19 @@ export function compareWords(userText, answer, lang = "en") {
   });
 
   const percent = Math.round((correct / answerWords.length) * 100);
+
   return {
     revealed: revealed.join(" "),
     percent,
-    accumulated: revealed.join(" "),
-    answerWords,
+    accumulatedText: updatedAccumulated.map((w) => w || "___").join(" "),
+    accumulatedArray: updatedAccumulated,
   };
 }
-export function matchWords(userWords, answerWords) {
+
+export function matchWords(userWords, accumulatedMatched) {
   let correct = 0;
-  const matched = answerWords.map((w, i) => {
+  const matched = accumulatedMatched.map((w, i) => {
+    if (w) return w;
     if (userWords.includes(w)) {
       correct++;
       return w;
@@ -59,8 +66,9 @@ export function matchWords(userWords, answerWords) {
     return "___";
   });
 
+  const percent = Math.round((correct / matched.length) * 100);
   return {
     matched,
-    percent: Math.round((correct / answerWords.length) * 100),
+    percent,
   };
 }
