@@ -178,8 +178,7 @@ function renderQuestion(q, index) {
 
     if (!recognition) {
       recognition = new SpeechRecognition();
-      recognition.lang = langToLocale(lang); // ví dụ zh → zh-CN, ja → ja-JP
-
+      recognition.lang = langToLocale(lang);
       recognition.interimResults = true;
     }
 
@@ -212,15 +211,20 @@ function renderQuestion(q, index) {
 
         const userWords = splitWords(normalize(finalTranscript, lang), lang);
         const answerWords = splitWords(normalize(q.dapAn, lang), lang);
-        const matchResult = matchWords(userWords, accumulatedMatched);
 
-        accumulatedMatched = matchResult.matched;
+        // 👉 Khởi tạo nếu chưa đúng độ dài
+        if (accumulatedMatched.length !== answerWords.length) {
+          accumulatedMatched = new Array(answerWords.length).fill("");
+        }
+
+        const result = matchWords(userWords, accumulatedMatched);
+        accumulatedMatched = result.matched; // ✅ cập nhật lại
 
         spoken.innerHTML = `<strong>Bạn nói:</strong> "${finalTranscript}"`;
-        match.innerHTML = `<strong>✅ Đúng:</strong> ${matchResult.matched.join(
+        match.innerHTML = `<strong>✅ Đúng:</strong> ${result.matched.join(
           " "
-        )}<br>🎯 <strong>Độ khớp:</strong> ${matchResult.percent}%`;
-        accumulatedLine.innerHTML = `<strong>Đáp án tích lũy:</strong> ${matchResult.matched.join(
+        )}<br>🎯 <strong>Độ khớp:</strong> ${result.percent}%`;
+        accumulatedLine.innerHTML = `<strong>Đáp án tích lũy:</strong> ${result.matched.join(
           " "
         )}`;
 
@@ -229,7 +233,6 @@ function renderQuestion(q, index) {
           retryScores.push(result.percent);
 
           const retryResults = document.getElementById(`retryResults-${index}`);
-
           const resBlock = document.createElement("div");
           resBlock.style.marginTop = "10px";
           resBlock.innerHTML = `
@@ -240,25 +243,23 @@ function renderQuestion(q, index) {
           retryResults.appendChild(resBlock);
 
           if (retryCount === 3) {
-            const total = retryScores.reduce((a, b) => a + b, 0);
-            const avg = Math.round(total / retryScores.length);
+            const avg = Math.round(
+              retryScores.reduce((a, b) => a + b, 0) / retryScores.length
+            );
             const pass = avg >= 60;
-
             const summary = document.createElement("p");
             summary.innerHTML = `<strong>📊 Trung bình độ khớp: ${avg}% → ${
               pass ? "✅ Đạt" : "❌ Chưa đạt"
             }</strong>`;
             retryResults.appendChild(summary);
 
-            if (pass) {
-              nextBtn.disabled = false;
-              finished = true;
-            } else {
+            if (!pass) {
               mustRedo.push(q);
               localStorage.setItem("mustRedo", JSON.stringify(mustRedo));
-              nextBtn.disabled = false;
-              finished = true;
             }
+
+            nextBtn.disabled = false;
+            finished = true;
           }
 
           return;
