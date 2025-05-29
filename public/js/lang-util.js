@@ -15,16 +15,18 @@ export function langToLocale(lang) {
 export function normalize(text, lang = "en") {
   if (lang === "zh") {
     return text
+      .normalize("NFD") // chuẩn hoá Unicode (để tách dấu)
       .replace(/\s+/g, "") // xoá khoảng trắng
-      .replace(/[a-zA-Z0-9.,!?'"“”‘’\-]/g, "") // loại bỏ ký tự Latin, số, dấu câu
+      .replace(/\p{Script=Latin}/gu, "") // ❗ loại bỏ tất cả ký tự Latin (kể cả có dấu)
+      .replace(/[0-9.,!?'"“”‘’\-]/g, "") // loại bỏ số và dấu câu
       .trim();
   }
 
   if (lang === "ja" || lang === "ko") {
-    return text.trim(); // đơn giản vì không có space hoặc dễ chuẩn hoá
+    return text.trim(); // không xử lý thêm
   }
 
-  // Ngôn ngữ có khoảng trắng: tiếng Anh, Việt...
+  // Ngôn ngữ có dấu cách như tiếng Anh, Việt
   return text
     .toLowerCase()
     .replace(/[.,!?]/g, "")
