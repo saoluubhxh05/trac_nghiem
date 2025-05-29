@@ -4,6 +4,7 @@ import {
   normalize,
   splitWords,
   compareWords,
+  compareChinese,
 } from "./lang-util.js";
 
 const questions = JSON.parse(localStorage.getItem("selectedQuestions") || "[]");
