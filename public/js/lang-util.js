@@ -1,5 +1,3 @@
-// lang-util.js
-
 export function langToLocale(lang) {
   return (
     {
@@ -15,18 +13,18 @@ export function langToLocale(lang) {
 export function normalize(text, lang = "en") {
   if (lang === "zh") {
     return text
-      .normalize("NFD") // chuẩn hoá Unicode (để tách dấu)
+      .normalize("NFD") // chuẩn hoá Unicode (để tách dấu Latin)
       .replace(/\s+/g, "") // xoá khoảng trắng
-      .replace(/\p{Script=Latin}/gu, "") // ❗ loại bỏ tất cả ký tự Latin (kể cả có dấu)
-      .replace(/[0-9.,!?'"“”‘’\-]/g, "") // loại bỏ số và dấu câu
+      .replace(/\p{Script=Latin}/gu, "") // loại bỏ mọi ký tự Latin (bao gồm cả có dấu, phiên âm pinyin)
+      .replace(/[0-9.,!?'"“”‘’\-]/g, "") // loại bỏ số & dấu câu
       .trim();
   }
 
   if (lang === "ja" || lang === "ko") {
-    return text.trim(); // không xử lý thêm
+    return text.trim(); // Giữ nguyên vì ít lỗi phát âm
   }
 
-  // Ngôn ngữ có dấu cách như tiếng Anh, Việt
+  // Với ngôn ngữ có dấu cách (en, vi...)
   return text
     .toLowerCase()
     .replace(/[.,!?]/g, "")
@@ -35,7 +33,7 @@ export function normalize(text, lang = "en") {
 
 export function splitWords(text, lang = "en") {
   if (lang === "zh" || lang === "ja" || lang === "ko") {
-    return text.split(""); // từng ký tự
+    return text.split(""); // Từng ký tự
   }
   return text.split(" ");
 }
@@ -93,6 +91,13 @@ export function matchWords(userWords, accumulatedMatched) {
 export function compareChinese(userText, answerText, accumulatedMatched = []) {
   const userChars = normalize(userText, "zh").split("");
   const answerChars = normalize(answerText, "zh").split("");
+
+  if (
+    !Array.isArray(accumulatedMatched) ||
+    accumulatedMatched.length !== answerChars.length
+  ) {
+    accumulatedMatched = new Array(answerChars.length).fill("");
+  }
 
   const newAccumulated = [...accumulatedMatched];
   let correct = 0;
