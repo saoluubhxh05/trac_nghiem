@@ -210,12 +210,19 @@ function renderQuestion(q, index) {
           return;
         }
 
-        const result = compareWords(finalTranscript, q.dapAn, lang);
-        accumulatedMatched = new Array(result.answerWords.length).fill("");
+        const userWords = splitWords(normalize(finalTranscript, lang), lang);
+        const answerWords = splitWords(normalize(q.dapAn, lang), lang);
+        const matchResult = matchWords(userWords, accumulatedMatched);
+
+        accumulatedMatched = matchResult.matched;
 
         spoken.innerHTML = `<strong>Bạn nói:</strong> "${finalTranscript}"`;
-        match.innerHTML = `<strong>✅ Đúng:</strong> ${result.revealed}<br>🎯 <strong>Độ khớp:</strong> ${result.percent}%`;
-        accumulatedLine.innerHTML = `<strong>Đáp án tích lũy:</strong> ${result.accumulated}`;
+        match.innerHTML = `<strong>✅ Đúng:</strong> ${matchResult.matched.join(
+          " "
+        )}<br>🎯 <strong>Độ khớp:</strong> ${matchResult.percent}%`;
+        accumulatedLine.innerHTML = `<strong>Đáp án tích lũy:</strong> ${matchResult.matched.join(
+          " "
+        )}`;
 
         if (retryMode) {
           retryCount++;
