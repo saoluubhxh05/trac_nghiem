@@ -135,15 +135,17 @@ function renderQuestion(q, index) {
     timerInterval = setInterval(() => {
       secondsLeft--;
       timer.textContent = `⏱️ ${secondsLeft}s`;
+
       if (secondsLeft <= 0) {
         clearInterval(timerInterval);
         if (!finished) {
           const correctNow = accumulatedMatched.filter(
             (w, i) => w === answerWords[i]
           ).length;
-          newPercent = Math.round((correctNow / answerWords.length) * 100);
+          let newPercent = Math.round((correctNow / answerWords.length) * 100);
 
-          if (percent >= 70) {
+          if (newPercent >= 70) {
+            // sửa `percent` → `newPercent`
             finished = true;
             nextBtn.disabled = false;
             replayBtn.disabled = false;
@@ -155,9 +157,9 @@ function renderQuestion(q, index) {
 
             const info = document.createElement("div");
             info.innerHTML = `
-  <p style="color: red"><strong>📌 Đáp án đúng:</strong> ${q.dapAn}</p>
-  <p><strong>⚠️ Hãy ghi nhớ đáp án đúng, sau đó bấm 'Bắt đầu nói' và nói 3 lần. Tổng độ khớp ≥ 60% sẽ được tính là hoàn thành.</strong></p>
-  <div id="retryResults-${index}" style="margin-top:10px"></div>
+<p style="color: red"><strong>📌 Đáp án đúng:</strong> ${q.dapAn}</p>
+<p><strong>⚠️ Hãy ghi nhớ đáp án đúng, sau đó bấm 'Bắt đầu nói' và nói 3 lần. Tổng độ khớp ≥ 60% sẽ được tính là hoàn thành.</strong></p>
+<div id="retryResults-${index}" style="margin-top:10px"></div>
 `;
             block.appendChild(info);
           }
@@ -288,14 +290,15 @@ function renderQuestion(q, index) {
 
     const matchResult = matchWords(userWords, accumulatedMatched);
     const updated = matchResult.matched.join(" ");
-    let newPercent = matchResult.percent;
+    let newPercent = matchResult.percent; // chỉ khai báo 1 lần
 
     accumulatedLine.innerHTML = `<strong>Đáp án tích lũy:</strong> ${updated}`;
 
     const correctNow = accumulatedMatched.filter(
       (w, i) => w === answerWords[i]
     ).length;
-    newPercent = Math.round((correctNow / answerWords.length) * 100);
+    newPercent = Math.round((correctNow / answerWords.length) * 100); // chỉ gán lại
+
     match.innerHTML += `<br><em>➡️ Sau trợ giúp: ${newPercent}%</em>`;
 
     if (newPercent >= 70) {
