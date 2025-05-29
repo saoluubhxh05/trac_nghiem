@@ -13,9 +13,18 @@ export function langToLocale(lang) {
 }
 
 export function normalize(text, lang = "en") {
-  if (lang === "zh" || lang === "ja" || lang === "ko") {
-    return text.trim();
+  if (lang === "zh") {
+    return text
+      .replace(/\s+/g, "") // xoá khoảng trắng
+      .replace(/[a-zA-Z0-9.,!?'"“”‘’\-]/g, "") // loại bỏ ký tự Latin, số, dấu câu
+      .trim();
   }
+
+  if (lang === "ja" || lang === "ko") {
+    return text.trim(); // đơn giản vì không có space hoặc dễ chuẩn hoá
+  }
+
+  // Ngôn ngữ có khoảng trắng: tiếng Anh, Việt...
   return text
     .toLowerCase()
     .replace(/[.,!?]/g, "")
@@ -73,29 +82,26 @@ export function matchWords(userWords, accumulatedMatched) {
   };
 }
 
-export function compareChinese(userText, answer) {
-  const userChars = normalize(userText, "zh").split(""); // từng ký tự
-  const answerChars = normalize(answer, "zh").split("");
-  const accumulated = [];
+export function compareChinese(userText, answerText, accumulatedMatched = []) {
+  const userChars = normalize(userText, "zh").split("");
+  const answerChars = normalize(answerText, "zh").split("");
 
+  const newAccumulated = [...accumulatedMatched];
   let correct = 0;
-  const revealed = answerChars.map((char, i) => {
-    if (userChars[i] === char) {
-      accumulated[i] = char;
-      correct++;
-      return char;
-    } else {
-      accumulated[i] = accumulated[i] || ""; // giữ giá trị trước nếu có
-      return "＿";
-    }
-  });
 
-  const percent = Math.round((correct / answerChars.length) * 100);
+  const revealed = answerChars.map((c, i) => {
+    if (newAccumulated[i] === c || userChars.includes(c)) {
+      newAccumulated[i] = c;
+      correct++;
+      return c;
+    }
+    return "＿";
+  });
 
   return {
     revealed: revealed.join(""),
-    percent,
-    accumulatedText: accumulated.map((c) => c || "＿").join(""),
-    accumulatedArray: accumulated,
+    percent: Math.round((correct / answerChars.length) * 100),
+    accumulated: newAccumulated.map((c) => c || "＿").join(""),
+    accumulatedArray: newAccumulated,
   };
 }
