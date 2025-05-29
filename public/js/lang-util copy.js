@@ -1,3 +1,5 @@
+// lang-util.js
+
 export function langToLocale(lang) {
   return (
     {
@@ -10,40 +12,36 @@ export function langToLocale(lang) {
   );
 }
 
-// ✅ Chuẩn hóa theo từng ngôn ngữ
 export function normalize(text, lang = "en") {
   if (lang === "zh") {
     return text
-      .replace(/\s+/g, "") // Xóa khoảng trắng
-      .replace(/[a-zA-Z0-9.,!?'"“”‘’\-]/g, "") // Loại bỏ ký tự Latin và dấu câu
+      .replace(/\s+/g, "") // xoá khoảng trắng
+      .replace(/[a-zA-Z0-9.,!?'"“”‘’\-]/g, "") // loại bỏ ký tự Latin, số, dấu câu
       .trim();
   }
 
   if (lang === "ja" || lang === "ko") {
-    return text.trim(); // Không xử lý thêm
+    return text.trim(); // đơn giản vì không có space hoặc dễ chuẩn hoá
   }
 
-  // Với tiếng Anh, Việt...
+  // Ngôn ngữ có khoảng trắng: tiếng Anh, Việt...
   return text
     .toLowerCase()
     .replace(/[.,!?]/g, "")
     .trim();
 }
 
-// ✅ Cắt từ hoặc ký tự theo ngôn ngữ
 export function splitWords(text, lang = "en") {
   if (lang === "zh" || lang === "ja" || lang === "ko") {
     return text.split(""); // từng ký tự
   }
-  return text.split(/\s+/); // từng từ, xóa khoảng trắng thừa
+  return text.split(" ");
 }
 
-// ✅ So sánh chung (dùng cho mọi ngôn ngữ)
 export function compareWords(userText, answer, lang = "en", accumulated = []) {
   const userWords = splitWords(normalize(userText, lang), lang);
   const answerWords = splitWords(normalize(answer, lang), lang);
 
-  // Nếu accumulated không đúng độ dài thì khởi tạo lại
   if (
     !Array.isArray(accumulated) ||
     accumulated.length !== answerWords.length
@@ -52,11 +50,11 @@ export function compareWords(userText, answer, lang = "en", accumulated = []) {
   }
 
   let correct = 0;
-  const revealed = answerWords.map((word, i) => {
-    if (accumulated[i] === word || userWords[i] === word) {
-      accumulated[i] = word;
+  const revealed = answerWords.map((w, i) => {
+    if (accumulated[i] === w || userWords.includes(w)) {
+      accumulated[i] = w;
       correct++;
-      return word;
+      return w;
     }
     return lang === "zh" ? "＿" : "___";
   });
@@ -72,14 +70,13 @@ export function compareWords(userText, answer, lang = "en", accumulated = []) {
   };
 }
 
-// ✅ Hàm phụ cho "trợ giúp"
 export function matchWords(userWords, accumulatedMatched) {
   let correct = 0;
   const matched = accumulatedMatched.map((w, i) => {
     if (w) return w;
-    if (userWords[i]) {
+    if (userWords.includes(w)) {
       correct++;
-      return userWords[i];
+      return w;
     }
     return "___";
   });
@@ -91,23 +88,15 @@ export function matchWords(userWords, accumulatedMatched) {
   };
 }
 
-// ✅ So sánh riêng cho tiếng Trung
 export function compareChinese(userText, answerText, accumulatedMatched = []) {
   const userChars = normalize(userText, "zh").split("");
   const answerChars = normalize(answerText, "zh").split("");
-
-  if (
-    !Array.isArray(accumulatedMatched) ||
-    accumulatedMatched.length !== answerChars.length
-  ) {
-    accumulatedMatched = new Array(answerChars.length).fill("");
-  }
 
   const newAccumulated = [...accumulatedMatched];
   let correct = 0;
 
   const revealed = answerChars.map((c, i) => {
-    if (newAccumulated[i] === c || userChars[i] === c) {
+    if (newAccumulated[i] === c || userChars.includes(c)) {
       newAccumulated[i] = c;
       correct++;
       return c;
