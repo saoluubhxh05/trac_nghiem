@@ -42,25 +42,31 @@ export function compareWords(userText, answer, lang = "en", accumulated = []) {
   const userWords = splitWords(normalize(userText, lang), lang);
   const answerWords = splitWords(normalize(answer, lang), lang);
 
-  let correct = 0;
-  const updatedAccumulated = [...accumulated]; // sao chép mảng để không thay đổi trực tiếp
+  if (
+    !Array.isArray(accumulated) ||
+    accumulated.length !== answerWords.length
+  ) {
+    accumulated = new Array(answerWords.length).fill("");
+  }
 
+  let correct = 0;
   const revealed = answerWords.map((w, i) => {
-    if (updatedAccumulated[i] === w || userWords.includes(w)) {
-      updatedAccumulated[i] = w;
+    if (accumulated[i] === w || userWords.includes(w)) {
+      accumulated[i] = w;
       correct++;
       return w;
     }
-    return "___";
+    return lang === "zh" ? "＿" : "___";
   });
 
   const percent = Math.round((correct / answerWords.length) * 100);
-
   return {
-    revealed: revealed.join(" "),
+    revealed: revealed.join(lang === "zh" ? "" : " "),
     percent,
-    accumulatedText: updatedAccumulated.map((w) => w || "___").join(" "),
-    accumulatedArray: updatedAccumulated,
+    accumulated: accumulated
+      .map((w) => w || (lang === "zh" ? "＿" : "___"))
+      .join(lang === "zh" ? "" : " "),
+    accumulatedArray: accumulated,
   };
 }
 
