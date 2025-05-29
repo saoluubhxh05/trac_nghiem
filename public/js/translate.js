@@ -1,5 +1,11 @@
 import { speak } from "./speech-util.js";
-import { langToLocale, normalize, splitWords } from "./lang-util.js";
+import {
+  langToLocale,
+  normalize,
+  splitWords,
+  compareWords,
+  matchWords,
+} from "./lang-util.js";
 
 const questions = JSON.parse(localStorage.getItem("selectedQuestions") || "[]");
 if (!questions.length) {
@@ -15,27 +21,6 @@ let recognition;
 let timerInterval;
 let accumulatedMatched = [];
 
-function compareWords(userText, answer, lang = "en") {
-  const userWords = splitWords(normalize(userText, lang), lang);
-  const answerWords = splitWords(normalize(answer, lang), lang);
-  let correct = 0;
-
-  const revealed = answerWords.map((w, i) => {
-    if (accumulatedMatched[i] === w || userWords.includes(w)) {
-      accumulatedMatched[i] = w;
-      correct++;
-      return w;
-    }
-    return "___";
-  });
-
-  const percent = Math.round((correct / answerWords.length) * 100);
-  return {
-    revealed: revealed.join(" "),
-    percent,
-    accumulated: accumulatedMatched.map((w) => w || "___").join(" "),
-  };
-}
 function startSpeechRecognition(onResult) {
   const SpeechRecognition =
     window.SpeechRecognition || window.webkitSpeechRecognition;
@@ -156,7 +141,7 @@ function renderQuestion(q, index) {
           const correctNow = accumulatedMatched.filter(
             (w, i) => w === answerWords[i]
           ).length;
-          const percent = Math.round((correctNow / answerWords.length) * 100);
+          newPercent = Math.round((correctNow / answerWords.length) * 100);
 
           if (percent >= 70) {
             finished = true;
@@ -224,6 +209,7 @@ function renderQuestion(q, index) {
         }
 
         const result = compareWords(finalTranscript, q.dapAn, lang);
+        accumulatedMatched = new Array(result.answerWords.length).fill("");
 
         spoken.innerHTML = `<strong>Bạn nói:</strong> "${finalTranscript}"`;
         match.innerHTML = `<strong>✅ Đúng:</strong> ${result.revealed}<br>🎯 <strong>Độ khớp:</strong> ${result.percent}%`;
@@ -290,6 +276,9 @@ function renderQuestion(q, index) {
   };
 
   helpBtn.onclick = () => {
+    const userWords = splitWords(normalize(finalTranscript, lang), lang);
+
+    // thêm 1 từ vào accumulated nếu chưa đúng
     for (let i = 0; i < answerWords.length; i++) {
       if (!accumulatedMatched[i]) {
         accumulatedMatched[i] = answerWords[i];
@@ -297,13 +286,16 @@ function renderQuestion(q, index) {
       }
     }
 
-    const updated = accumulatedMatched.map((w) => w || "___").join(" ");
+    const matchResult = matchWords(userWords, accumulatedMatched);
+    const updated = matchResult.matched.join(" ");
+    let newPercent = matchResult.percent;
+
     accumulatedLine.innerHTML = `<strong>Đáp án tích lũy:</strong> ${updated}`;
 
     const correctNow = accumulatedMatched.filter(
       (w, i) => w === answerWords[i]
     ).length;
-    const newPercent = Math.round((correctNow / answerWords.length) * 100);
+    newPercent = Math.round((correctNow / answerWords.length) * 100);
     match.innerHTML += `<br><em>➡️ Sau trợ giúp: ${newPercent}%</em>`;
 
     if (newPercent >= 70) {
