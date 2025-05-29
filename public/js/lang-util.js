@@ -72,3 +72,30 @@ export function matchWords(userWords, accumulatedMatched) {
     percent,
   };
 }
+
+export function compareChinese(userText, answer) {
+  const userChars = normalize(userText, "zh").split(""); // từng ký tự
+  const answerChars = normalize(answer, "zh").split("");
+  const accumulated = [];
+
+  let correct = 0;
+  const revealed = answerChars.map((char, i) => {
+    if (userChars[i] === char) {
+      accumulated[i] = char;
+      correct++;
+      return char;
+    } else {
+      accumulated[i] = accumulated[i] || ""; // giữ giá trị trước nếu có
+      return "＿";
+    }
+  });
+
+  const percent = Math.round((correct / answerChars.length) * 100);
+
+  return {
+    revealed: revealed.join(""),
+    percent,
+    accumulatedText: accumulated.map((c) => c || "＿").join(""),
+    accumulatedArray: accumulated,
+  };
+}
