@@ -2,7 +2,6 @@
 import {
   initializeApp,
   getApps,
-  getApp,
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
 import {
   getAuth,
@@ -19,17 +18,22 @@ const firebaseConfig = {
   storageBucket: "abcd-9d83a.appspot.com",
   messagingSenderId: "380338460918",
   appId: "1:380338460918:web:d1b1d7c9bc40471ded34d7",
+  measurementId: "G-R1694J34HS",
 };
 
-const app = getApps().length === 0 ? initializeApp(firebaseConfig) : getApp();
+const app =
+  getApps().length === 0 ? initializeApp(firebaseConfig) : getApps()[0];
+
 const auth = getAuth(app);
 const provider = new GoogleAuthProvider();
 
 export function initFirebaseAuth() {
-  window.addEventListener("DOMContentLoaded", () => {
+  const interval = setInterval(() => {
     const loginArea = document.getElementById("loginArea");
     if (!loginArea) return;
+    clearInterval(interval);
 
+    // Tạo login widget
     const loginDiv = document.createElement("div");
     loginDiv.id = "loginWidget";
 
@@ -43,6 +47,7 @@ export function initFirebaseAuth() {
     `;
     loginArea.appendChild(loginDiv);
 
+    // Gắn sự kiện
     const loginBtn = document.getElementById("loginBtn");
     const userMenu = document.getElementById("userMenu");
     const userName = document.getElementById("userName");
@@ -85,5 +90,5 @@ export function initFirebaseAuth() {
         userMenu.style.display = "none";
       }
     });
-  });
+  }, 100);
 }

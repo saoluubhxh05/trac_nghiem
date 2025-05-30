@@ -20,24 +20,9 @@
       #stats {
         margin-top: 20px;
       }
-      #importBtnContainer {
-        margin: 20px 0;
-        display: none; /* Ẩn mặc định, chỉ hiển thị nếu đúng user */
-      }
-      #fixedHeader {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        padding: 10px;
-      }
     </style>
   </head>
   <body>
-    <div id="fixedHeader">
-      <button onclick="location.href='index.html'">🏠 Home</button>
-      <div id="loginArea" style="display: flex; gap: 10px"></div>
-    </div>
-
     <h1>🏠 <span style="color: black">Trang chủ</span></h1>
 
     <div id="userInfo"></div>
@@ -47,46 +32,21 @@
       <p><strong>Tổng điểm:</strong> <span id="totalScore">0</span></p>
     </div>
 
-    <div id="importBtnContainer">
-      <button onclick="location.href='import.html'">📥 Import câu hỏi</button>
-      <button onclick="location.href='import-2.html'">
-        📥 Import câu hỏi 2
-      </button>
-    </div>
-
+    <button onclick="location.href='import.html'">📥 Import câu hỏi</button>
     <button onclick="location.href='select-quiz.html'">
       📝 Bắt đầu làm bài
     </button>
 
-    <!-- XỬ LÝ FIREBASE LOGIN + PHÂN QUYỀN -->
     <script type="module">
       import { initFirebaseAuth } from "./js/firebase.js";
-      import {
-        getAuth,
-        onAuthStateChanged,
-      } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
-
-      initFirebaseAuth(); // ⚠️ GỌI TRỰC TIẾP, KHÔNG gói trong DOMContentLoaded
-
-      const allowedEmail = "tqminh1982@gmail.com";
-      const importDiv = document.getElementById("importBtnContainer");
-
-      // Gắn sau 300ms để đợi login widget render
-      setTimeout(() => {
-        onAuthStateChanged(getAuth(), (user) => {
-          console.log("👤 Đang đăng nhập:", user?.email);
-          if (user?.email === allowedEmail) {
-            importDiv.style.display = "block";
-          }
-        });
-      }, 300);
+      initFirebaseAuth();
     </script>
 
-    <!-- EMOTION VÀ CHUỖI BỎ BÀI -->
     <script>
       function tinhSoNgayBoQua() {
         const last = localStorage.getItem("lastDoneDate");
         if (!last) return 10;
+
         const lastDate = new Date(last);
         const now = new Date();
         const diffTime = now - lastDate;
@@ -114,7 +74,6 @@
       userInfo.appendChild(img);
       userInfo.appendChild(text);
     </script>
-
     <script type="module" src="js/header.js"></script>
   </body>
 </html>
