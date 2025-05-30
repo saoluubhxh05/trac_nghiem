@@ -1,11 +1,11 @@
-// ✅ import.js đã cập nhật thêm trường Ngôn ngữ
+// ✅ import.js chỉ lưu vào collection theo selectionName
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
 import {
   getFirestore,
   collection,
   addDoc,
-  deleteDoc,
   getDocs,
+  deleteDoc,
   doc,
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
@@ -30,8 +30,13 @@ document.addEventListener("DOMContentLoaded", () => {
 
   importBtn.addEventListener("click", async () => {
     const file = fileInput.files[0];
+    const selectionName = document.getElementById("selectionName").value.trim();
     if (!file) {
       alert("Vui lòng chọn file Excel.");
+      return;
+    }
+    if (!selectionName) {
+      alert("Vui lòng nhập tên Selection trước khi import.");
       return;
     }
 
@@ -59,32 +64,29 @@ document.addEventListener("DOMContentLoaded", () => {
         phuongAn4:
           row["Phương án 4"] || row["Các phương án"]?.split("#")[3] || "",
         tenAnh: row["tenAnh"] || "",
-        language: row["Ngôn ngữ"] || "vi", // ✅ mới thêm dòng này
+        language: row["Ngôn ngữ"] || "vi",
       }));
 
       const questions = raw.filter(
         (q) => q.monHoc && q.loai && q.chuDe && q.cauHoi && q.dapAn
       );
 
-      const snapshot = await getDocs(collection(db, "questions"));
-      await Promise.all(
-        snapshot.docs.map((docSnap) =>
-          deleteDoc(doc(db, "questions", docSnap.id))
-        )
-      );
+      const collectionName = `selection_${selectionName.replace(/\s+/g, "_")}`;
+      const questionsCollection = collection(db, collectionName);
+      let successCount = 0;
 
-      const questionsCollection = collection(db, "questions");
       await Promise.all(
         questions.map(async (q, index) => {
           try {
             await addDoc(questionsCollection, q);
+            successCount++;
           } catch (err) {
             console.error("❌ Lỗi tại dòng", index + 1, err);
           }
         })
       );
 
-      alert("✅ Import thành công! Tổng số câu hỏi: " + questions.length);
+      alert("✅ Import thành công! Tổng số câu hỏi: " + successCount);
       window.location.reload();
     };
 
@@ -92,23 +94,33 @@ document.addEventListener("DOMContentLoaded", () => {
   });
 
   deleteBtn.addEventListener("click", async () => {
-    if (confirm("Bạn có chắc chắn muốn xóa toàn bộ dữ liệu đã import?")) {
-      const snapshot = await getDocs(collection(db, "questions"));
-      await Promise.all(
-        snapshot.docs.map((docSnap) =>
-          deleteDoc(doc(db, "questions", docSnap.id))
-        )
-      );
-      alert("✅ Đã xóa toàn bộ dữ liệu trên Firebase.");
-      window.location.reload();
-    }
+    const selectionName = prompt("Nhập tên Selection cần xoá:");
+    if (!selectionName) return;
+
+    const collectionName = `selection_${selectionName.replace(/\s+/g, "_")}`;
+    if (
+      !confirm(
+        `Bạn có chắc chắn muốn xoá toàn bộ dữ liệu trong "${collectionName}" không?`
+      )
+    )
+      return;
+
+    const snapshot = await getDocs(collection(db, collectionName));
+    await Promise.all(
+      snapshot.docs.map((docSnap) =>
+        deleteDoc(doc(db, collectionName, docSnap.id))
+      )
+    );
+    alert(`✅ Đã xoá toàn bộ dữ liệu trong ${collectionName}.`);
+    window.location.reload();
   });
 
+  // Hiển thị dữ liệu gần nhất trong collection "questions" để kiểm tra
   getDocs(collection(db, "questions")).then((snapshot) => {
     const questions = snapshot.docs.map((doc) => doc.data());
     questions.sort((a, b) => (a.stt || 0) - (b.stt || 0));
 
-    soLuongSpan.textContent = `Tổng số câu: ${questions.length}`;
+    soLuongSpan.textContent = `Tổng số câu (collection mặc định): ${questions.length}`;
     tbody.innerHTML = "";
 
     questions.forEach((item, index) => {
