@@ -208,18 +208,14 @@ function renderQuestion(q, index) {
         }
 
         let result;
-        if (lang === "zh") {
-          result = compareChinese(finalTranscript, q.dapAn, accumulatedMatched);
-          accumulatedMatched = result.accumulatedArray;
-        } else {
-          result = compareWords(
-            finalTranscript,
-            q.dapAn,
-            lang,
-            accumulatedMatched
-          );
-          accumulatedMatched = result.accumulatedArray;
-        }
+        result = compareWords(
+          finalTranscript,
+          q.dapAn,
+          lang,
+          accumulatedMatched
+        );
+
+        accumulatedMatched = result.accumulatedArray;
 
         spoken.innerHTML = `<strong>Bạn nói:</strong> "${finalTranscript}"`;
         match.innerHTML = `<strong>✅ Đúng:</strong> ${result.revealed}<br>🎯 <strong>Độ khớp:</strong> ${result.percent}%`;
@@ -258,7 +254,6 @@ function renderQuestion(q, index) {
             nextBtn.disabled = false;
             finished = true;
           }
-
           return;
         }
 
@@ -290,8 +285,7 @@ function renderQuestion(q, index) {
       }
     }
 
-    let updated, newPercent;
-
+    let updated;
     if (lang === "zh") {
       updated = accumulatedMatched.map((c) => c || "＿").join("");
     } else {
@@ -303,7 +297,7 @@ function renderQuestion(q, index) {
     const correctNow = accumulatedMatched.filter(
       (w, i) => w === answerWords[i]
     ).length;
-    newPercent = Math.round((correctNow / answerWords.length) * 100);
+    const newPercent = Math.round((correctNow / answerWords.length) * 100);
 
     match.innerHTML += `<br><em>➡️ Sau trợ giúp: ${newPercent}%</em>`;
 

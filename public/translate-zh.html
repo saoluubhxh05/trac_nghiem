@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="vi">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Luyện dịch tiếng Trung</title>
+    <link rel="stylesheet" href="css/style.css" />
+    <style>
+      .question-block {
+        margin-bottom: 30px;
+        padding: 15px;
+        border: 1px solid #ccc;
+        border-radius: 8px;
+        background: #f9f9f9;
+      }
+      .timer {
+        font-weight: bold;
+        margin: 8px 0;
+      }
+      .controls button {
+        margin-right: 10px;
+        margin-top: 10px;
+      }
+    </style>
+  </head>
+  <body>
+    <button
+      onclick="location.href='index.html'"
+      style="position: absolute; top: 10px; left: 10px"
+    >
+      🏠 Home
+    </button>
+
+    <h1>📖 Luyện dịch tiếng Trung</h1>
+
+    <div id="translateContainer"></div>
+
+    <script type="module" src="js/translate-zh.js"></script>
+    <script type="module" src="js/header.js"></script>
+  </body>
+</html>
