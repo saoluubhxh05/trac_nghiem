@@ -282,6 +282,11 @@ document.addEventListener("DOMContentLoaded", async () => {
       localStorage.setItem("translateTime", translateTimeInput.value);
     }
 
-    window.location.href = `${loaiBaiTapList[0]}.html`;
+    let firstType = loaiBaiTapList[0];
+    if (firstType === "translate") {
+      if (language === "zh") firstType = "translate-zh";
+      else firstType = "translate-en";
+    }
+    window.location.href = `${firstType}.html`;
   });
 });
