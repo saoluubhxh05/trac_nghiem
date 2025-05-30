@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="vi">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Chọn bài trắc nghiệm</title>
+    <link rel="stylesheet" href="css/style.css" />
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        padding: 20px;
+      }
+      select,
+      input[type="number"] {
+        margin: 5px 0;
+        padding: 5px;
+      }
+      label {
+        display: block;
+        margin-top: 10px;
+        font-weight: bold;
+      }
+      .checkbox-group {
+        margin-top: 10px;
+      }
+      .checkbox-group label {
+        display: block;
+        font-weight: normal;
+      }
+      .chu-de-row {
+        margin-bottom: 10px;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>🎯 Bắt đầu làm bài</h1>
+
+    <label for="selection">📁 Danh sách:</label>
+    <select id="selection">
+      <option value="">-- Chọn danh sách --</option>
+    </select>
+
+    <label for="ngonNgu">🌐 Ngôn ngữ:</label>
+    <select id="ngonNgu"></select>
+
+    <label for="monHoc">📚 Môn học:</label>
+    <select id="monHoc"></select>
+
+    <label for="loai">🧩 Loại:</label>
+    <select id="loai"></select>
+
+    <label>🎯 Loại bài tập:</label>
+    <div class="checkbox-group" id="loaiBaiTapContainer">
+      <label><input type="checkbox" value="quiz" /> Trắc nghiệm 4 đáp án</label>
+      <label
+        ><input type="checkbox" value="fill" /> Điền từ vào chỗ trống</label
+      >
+      <label><input type="checkbox" value="match" /> Ghép câu - đáp án</label>
+      <label><input type="checkbox" value="speak" /> Luyện nói</label>
+      <label><input type="checkbox" value="dict" /> Luyện chính tả</label>
+      <label
+        ><input type="checkbox" value="combo" /> Combo (3 bước: Điền → Nói →
+        Nghe)</label
+      >
+      <label>
+        <input type="checkbox" value="translate" /> Luyện dịch
+        <input
+          type="number"
+          id="translateTime"
+          value="30"
+          min="5"
+          max="300"
+          style="width: 60px"
+        />
+        giây
+      </label>
+    </div>
+
+    <label>📑 Chủ đề:</label>
+    <div id="chuDeContainer"></div>
+
+    <label for="thuTu">🔢 Thứ tự hiển thị:</label>
+    <select id="thuTu">
+      <option value="thuTu">Theo thứ tự</option>
+      <option value="ngaunhien">Ngẫu nhiên</option>
+    </select>
+
+    <button id="batDauBtn">🚀 Bắt đầu làm bài</button>
+
+    <script type="module" src="js/select-quiz-2.js"></script>
+  </body>
+</html>
