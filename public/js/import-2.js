@@ -79,13 +79,27 @@ popupImport.addEventListener("click", async () => {
     const collectionName = `selection_${name.replace(/\s+/g, "_")}`;
     const questionsCollection = collection(db, collectionName);
 
-    await Promise.all(questions.map((q) => addDoc(questionsCollection, q)));
+    try {
+      await Promise.all(questions.map((q) => addDoc(questionsCollection, q)));
 
-    // Ghi tên selection vào selectionMeta
-    await addDoc(collection(db, "selectionMeta"), {
-      name: collectionName,
-      createdAt: Date.now(),
-    });
+      await addDoc(collection(db, "selectionMeta"), {
+        name: collectionName,
+        createdAt: Date.now(),
+      });
+
+      alert(`✅ Đã import ${questions.length} câu hỏi.`);
+      document.getElementById("popupOverlay").click();
+      loadSelections();
+    } catch (err) {
+      if (err.code === "permission-denied") {
+        alert(
+          "❌ Bạn không có quyền import dữ liệu. Hãy đăng nhập bằng tài khoản được cấp phép."
+        );
+      } else {
+        console.error("❌ Lỗi khi import:", err);
+        alert("❌ Có lỗi xảy ra khi import dữ liệu.");
+      }
+    }
 
     alert(`✅ Đã import ${questions.length} câu hỏi.`);
     document.getElementById("popupOverlay").click();
