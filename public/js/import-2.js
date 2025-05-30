@@ -83,11 +83,33 @@ popupImport.addEventListener("click", async () => {
       (q) => q.monHoc && q.loai && q.chuDe && q.cauHoi && q.dapAn
     );
 
-    const questionsCollection = collection(db, collectionName);
+    const colRef = collection(db, collectionName);
 
     try {
-      await Promise.all(questions.map((q) => addDoc(questionsCollection, q)));
+      // 🔁 Xóa toàn bộ nếu đã tồn tại
+      const existingDocs = await getDocs(colRef);
+      if (!existingDocs.empty) {
+        const confirmDelete = confirm(
+          `⚠️ Danh sách "${partName}" đã tồn tại. Bạn có muốn ghi đè (xoá toàn bộ cũ và ghi mới)?`
+        );
+        if (!confirmDelete) return;
 
+        await Promise.all(
+          existingDocs.docs.map((docSnap) => deleteDoc(docSnap.ref))
+        );
+      }
+
+      // ✅ Import mới
+      await Promise.all(questions.map((q) => addDoc(colRef, q)));
+
+      // ✅ Ghi metadata
+      const metaSnap = await getDocs(collection(db, "selectionMeta"));
+      const existedMeta = metaSnap.docs.find(
+        (d) => d.data().name === collectionName
+      );
+      if (existedMeta) {
+        await deleteDoc(doc(db, "selectionMeta", existedMeta.id));
+      }
       await addDoc(collection(db, "selectionMeta"), {
         name: collectionName,
         createdAt: Date.now(),
@@ -97,14 +119,8 @@ popupImport.addEventListener("click", async () => {
       document.getElementById("popupOverlay").click();
       loadSelections();
     } catch (err) {
-      if (err.code === "permission-denied") {
-        alert(
-          "❌ Bạn không có quyền import dữ liệu. Hãy đăng nhập bằng tài khoản được cấp phép."
-        );
-      } else {
-        console.error("❌ Lỗi khi import:", err);
-        alert("❌ Có lỗi xảy ra khi import dữ liệu.");
-      }
+      console.error("❌ Lỗi khi import:", err);
+      alert("❌ Có lỗi xảy ra khi import dữ liệu.");
     }
   };
 
