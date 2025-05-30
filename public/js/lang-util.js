@@ -12,11 +12,10 @@ export function langToLocale(lang) {
 
 export function normalize(text, lang = "en") {
   if (lang === "zh") {
+    // Chỉ giữ lại ký tự tiếng Trung (thuộc Unicode CJK)
     return text
-      .normalize("NFD") // chuẩn hoá Unicode (để tách dấu Latin)
-      .replace(/\s+/g, "") // xoá khoảng trắng
-      .replace(/\p{Script=Latin}/gu, "") // loại bỏ mọi ký tự Latin (bao gồm cả có dấu, phiên âm pinyin)
-      .replace(/[0-9.,!?'"“”‘’\-]/g, "") // loại bỏ số & dấu câu
+      .normalize("NFD")
+      .replace(/[^\p{Script=Han}]/gu, "") // chỉ giữ lại chữ Hán
       .trim();
   }
 
