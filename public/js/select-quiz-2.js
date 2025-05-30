@@ -36,11 +36,35 @@ function getUniqueValues(field, filterFn = () => true) {
 
 function updateSelectOptions(selectId, options) {
   const select = document.getElementById(selectId);
-  select.innerHTML = `<option value="">-- Chọn ${selectId} --</option>`;
-  options.forEach((opt) => {
-    const option = document.createElement("option");
-    option.value = option.textContent = opt;
-    select.appendChild(option);
+  select.innerHTML = "";
+
+  if (options.length === 0) {
+    const opt = document.createElement("option");
+    opt.value = "";
+    opt.textContent = "-- Không có dữ liệu --";
+    select.appendChild(opt);
+    return;
+  }
+
+  if (options.length === 1) {
+    const opt = document.createElement("option");
+    opt.value = opt.textContent = options[0];
+    select.appendChild(opt);
+    select.value = options[0];
+    // Tự gọi change nếu chỉ có 1
+    select.dispatchEvent(new Event("change"));
+    return;
+  }
+
+  const defaultOpt = document.createElement("option");
+  defaultOpt.value = "";
+  defaultOpt.textContent = `-- Chọn ${selectId} --`;
+  select.appendChild(defaultOpt);
+
+  options.forEach((optVal) => {
+    const opt = document.createElement("option");
+    opt.value = opt.textContent = optVal;
+    select.appendChild(opt);
   });
 }
 
