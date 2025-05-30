@@ -20,9 +20,18 @@
       #stats {
         margin-top: 20px;
       }
+      #importBtnContainer {
+        margin: 20px 0;
+        display: none; /* Mặc định ẩn */
+      }
     </style>
   </head>
   <body>
+    <div id="fixedHeader">
+      <button onclick="location.href='index.html'">🏠 Home</button>
+      <div id="loginArea" style="float: right"></div>
+    </div>
+
     <h1>🏠 <span style="color: black">Trang chủ</span></h1>
 
     <div id="userInfo"></div>
@@ -32,8 +41,7 @@
       <p><strong>Tổng điểm:</strong> <span id="totalScore">0</span></p>
     </div>
 
-    <!-- ✅ Nút Import ẩn theo mặc định -->
-    <div id="importBtnContainer" style="display: none">
+    <div id="importBtnContainer">
       <button onclick="location.href='import.html'">📥 Import câu hỏi</button>
       <button onclick="location.href='import-2.html'">
         📥 Import câu hỏi 2
@@ -44,33 +52,22 @@
       📝 Bắt đầu làm bài
     </button>
 
-    <!-- ✅ Xác thực và hiển thị nút Import nếu đúng email -->
     <script type="module">
-      import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+      import { initFirebaseAuth } from "./js/firebase.js";
       import {
         getAuth,
         onAuthStateChanged,
       } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
-      import { initFirebaseAuth } from "./js/firebase.js";
+
       initFirebaseAuth();
 
-      const firebaseConfig = {
-        apiKey: "AIzaSyBvNfpf4KQeJw9fuDkTyXdoDY3LEuUL1fc",
-        authDomain: "abcd-9d83a.firebaseapp.com",
-        projectId: "abcd-9d83a",
-        storageBucket: "abcd-9d83a.appspot.com",
-        messagingSenderId: "380338460918",
-        appId: "1:380338460918:web:d1b1d7c9bc40471ded34d7",
-      };
+      const allowedEmail = "truongminh@gmail.com"; // ✅ đổi email được phép ở đây
+      const importDiv = document.getElementById("importBtnContainer");
 
-      const app = initializeApp(firebaseConfig);
-      const auth = getAuth(app);
-
-      const allowedEmail = "tqminh1982@gmail.com"; // ✅ Chỉ email này được phép Import
-
-      onAuthStateChanged(auth, (user) => {
-        if (user && user.email === allowedEmail) {
-          document.getElementById("importBtnContainer").style.display = "block";
+      onAuthStateChanged(getAuth(), (user) => {
+        console.log("Logged in as:", user?.email);
+        if (user?.email === allowedEmail) {
+          importDiv.style.display = "block";
         }
       });
     </script>
@@ -79,6 +76,7 @@
       function tinhSoNgayBoQua() {
         const last = localStorage.getItem("lastDoneDate");
         if (!last) return 10;
+
         const lastDate = new Date(last);
         const now = new Date();
         const diffTime = now - lastDate;
