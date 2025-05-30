@@ -14,94 +14,119 @@
       input[type="number"] {
         margin: 5px 0;
         padding: 5px;
+        width: 100%;
       }
       label {
-        display: block;
-        margin-top: 10px;
         font-weight: bold;
-      }
-      .checkbox-group {
         margin-top: 10px;
+        display: block;
+      }
+      .container {
+        display: flex;
+        gap: 20px;
+        align-items: flex-start;
+        margin-bottom: 20px;
+      }
+      .column {
+        flex: 1;
+      }
+      #chuDeContainer {
+        max-height: 300px;
+        overflow-y: auto;
+        border: 1px dashed #aaa;
+        padding: 12px;
+        border-radius: 10px;
+        background: #fefefe;
+        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
       }
       .checkbox-group label {
         display: block;
         font-weight: normal;
+        margin-bottom: 6px;
       }
-      .chu-de-row {
-        margin-bottom: 10px;
+      button {
+        padding: 12px 24px;
+        font-size: 16px;
+        margin-top: 10px;
       }
     </style>
   </head>
   <body>
     <h1>🎯 Bắt đầu làm bài</h1>
 
-    <label for="selection">📁 Danh sách:</label>
-    <select id="danhSach">
-      <option value="">-- Chọn danh sách --</option>
-    </select>
+    <div class="container">
+      <!-- CỘT 1 -->
+      <div class="column">
+        <label for="danhSach">📁 Danh sách:</label>
+        <select id="danhSach">
+          <option value="">-- Chọn danh sách --</option>
+        </select>
 
-    <label for="ngonNgu">🌐 Ngôn ngữ:</label>
-    <select id="ngonNgu"></select>
+        <label for="ngonNgu">🌐 Ngôn ngữ:</label>
+        <select id="ngonNgu"></select>
 
-    <label for="monHoc">📚 Môn học:</label>
-    <select id="monHoc"></select>
+        <label for="monHoc">📚 Môn học:</label>
+        <select id="monHoc"></select>
 
-    <label for="loai">🧩 Loại:</label>
-    <select id="loai"></select>
+        <label for="loai">🧩 Loại:</label>
+        <select id="loai"></select>
 
-    <label>🎯 Loại bài tập:</label>
-    <div class="checkbox-group" id="loaiBaiTapContainer">
-      <label><input type="checkbox" value="quiz" /> Trắc nghiệm 4 đáp án</label>
-      <label
-        ><input type="checkbox" value="fill" /> Điền từ vào chỗ trống</label
-      >
-      <label><input type="checkbox" value="match" /> Ghép câu - đáp án</label>
-      <label><input type="checkbox" value="speak" /> Luyện nói</label>
-      <label><input type="checkbox" value="dict" /> Luyện chính tả</label>
-      <label
-        ><input type="checkbox" value="combo" /> Combo (3 bước: Điền → Nói →
-        Nghe)</label
-      >
-      <label>
-        <input type="checkbox" value="translate" /> Luyện dịch
-        <input
-          type="number"
-          id="translateTime"
-          value="30"
-          min="5"
-          max="300"
-          style="width: 60px"
-        />
-        giây
-      </label>
+        <label for="thuTu">🔢 Thứ tự hiển thị:</label>
+        <select id="thuTu">
+          <option value="theothutu">Theo thứ tự</option>
+          <option value="ngaunhien">Ngẫu nhiên</option>
+        </select>
+      </div>
+
+      <!-- CỘT 2 -->
+      <div class="column">
+        <label>🎯 Loại bài tập:</label>
+        <div class="checkbox-group" id="loaiBaiTapContainer">
+          <label
+            ><input type="checkbox" value="quiz" /> Trắc nghiệm 4 đáp án</label
+          >
+          <label
+            ><input type="checkbox" value="fill-blank" /> Điền từ vào chỗ
+            trống</label
+          >
+          <label
+            ><input type="checkbox" value="matching" /> Ghép câu - đáp án</label
+          >
+          <label><input type="checkbox" value="speaking" /> Luyện nói</label>
+          <label
+            ><input type="checkbox" value="spelling" /> Luyện chính tả</label
+          >
+          <label
+            ><input type="checkbox" value="combo" /> Combo (3 bước: Điền → Nói →
+            Nghe)</label
+          >
+          <label>
+            <input type="checkbox" value="translate" id="translateCheckbox" />
+            Luyện dịch
+            <input
+              type="number"
+              id="translateTime"
+              value="30"
+              min="5"
+              max="300"
+              style="width: 60px"
+            />
+            giây
+          </label>
+        </div>
+      </div>
+
+      <!-- CỘT 3 -->
+      <div class="column">
+        <label>📑 Chủ đề:</label>
+        <div id="chuDeContainer"></div>
+      </div>
     </div>
-
-    <label>📑 Chủ đề:</label>
-    <div id="chuDeContainer"></div>
-
-    <label for="thuTu">🔢 Thứ tự hiển thị:</label>
-    <select id="thuTu">
-      <option value="thuTu">Theo thứ tự</option>
-      <option value="ngaunhien">Ngẫu nhiên</option>
-    </select>
 
     <button id="batDauBtn">🚀 Bắt đầu làm bài</button>
 
+    <!-- Script -->
     <script type="module" src="js/select-quiz-2.js"></script>
-
     <script type="module" src="js/header.js"></script>
-    <script type="module">
-      import { initFirebaseAuth } from "./js/firebase.js";
-      initFirebaseAuth();
-
-      document
-        .getElementById("translateCheckbox")
-        .addEventListener("change", (e) => {
-          document.getElementById("translateOptions").style.display = e.target
-            .checked
-            ? "block"
-            : "none";
-        });
-    </script>
   </body>
 </html>
