@@ -45,6 +45,7 @@ function updateSelectOptions(selectId, options) {
 }
 
 function renderChuDeTheoBoLoc() {
+  const ds = document.getElementById("danhSach").value;
   const monHoc = document.getElementById("monHoc").value;
   const loai = document.getElementById("loai").value;
   const language = document.getElementById("ngonNgu").value;
@@ -54,7 +55,11 @@ function renderChuDeTheoBoLoc() {
   const chuDeMap = new Map();
   questions
     .filter(
-      (q) => q.monHoc === monHoc && q.loai === loai && q.language === language
+      (q) =>
+        q.selection === ds &&
+        q.monHoc === monHoc &&
+        q.loai === loai &&
+        q.language === language
     )
     .forEach((q) => {
       chuDeMap.set(q.chuDe, (chuDeMap.get(q.chuDe) || 0) + 1);
@@ -83,30 +88,30 @@ function renderChuDeTheoBoLoc() {
 }
 
 document.addEventListener("DOMContentLoaded", async () => {
-  const danhSachList = [
-    "Vocabulary_in_use_Elementary",
-    "301_câu_đàm_thoại_tiếng_Hoa",
-    // 👉 Thêm các danh sách khác nếu có
-  ];
+  const snapshot = await getDocs(collection(db, "questions"));
+  questions = snapshot.docs.map((doc) => doc.data());
+  window.questions = questions;
 
-  updateSelectOptions("danhSach", danhSachList);
+  if (!questions.length) {
+    alert("Không có dữ liệu câu hỏi! Vui lòng import trước.");
+    return;
+  }
 
-  document.getElementById("danhSach").addEventListener("change", async () => {
+  const danhSachSet = new Set();
+  questions.forEach((q) => danhSachSet.add(q.selection || "Không rõ"));
+  updateSelectOptions("danhSach", Array.from(danhSachSet));
+
+  document.getElementById("danhSach").addEventListener("change", () => {
     const ds = document.getElementById("danhSach").value;
-    if (!ds) return;
 
-    const collectionName = `selection_${ds}`;
-    const snapshot = await getDocs(collection(db, collectionName));
-    questions = snapshot.docs.map((doc) => doc.data());
+    const ngonNguList = getUniqueValues("language", (q) => q.selection === ds);
+    updateSelectOptions("ngonNgu", ngonNguList);
 
-    if (!questions.length) {
-      alert("Không có dữ liệu trong danh sách này.");
-      return;
-    }
+    const monHocList = getUniqueValues("monHoc", (q) => q.selection === ds);
+    updateSelectOptions("monHoc", monHocList);
 
-    updateSelectOptions("ngonNgu", getUniqueValues("language"));
-    updateSelectOptions("monHoc", getUniqueValues("monHoc"));
-    updateSelectOptions("loai", getUniqueValues("loai"));
+    const loaiList = getUniqueValues("loai", (q) => q.selection === ds);
+    updateSelectOptions("loai", loaiList);
 
     renderChuDeTheoBoLoc();
   });
@@ -121,6 +126,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     const monHoc = document.getElementById("monHoc").value;
     const loai = document.getElementById("loai").value;
     const language = document.getElementById("ngonNgu").value;
+    const ds = document.getElementById("danhSach").value;
     const thuTu = document.getElementById("thuTu").value;
 
     const loaiBaiTapEls = document.querySelectorAll(
@@ -144,6 +150,7 @@ document.addEventListener("DOMContentLoaded", async () => {
       monHoc,
       loai,
       language,
+      ds,
       loaiBaiTapList,
       thuTu,
       chuDe: Array.from(chuDeCheckboxes).map((chk) => {
@@ -167,11 +174,15 @@ document.addEventListener("DOMContentLoaded", async () => {
       if (loaiBaiTapList.includes("combo")) {
         filtered = questions.filter(
           (q) =>
-            q.monHoc === monHoc && q.chuDe === chuDe && q.language === language
+            q.selection === ds &&
+            q.monHoc === monHoc &&
+            q.chuDe === chuDe &&
+            q.language === language
         );
       } else {
         filtered = questions.filter(
           (q) =>
+            q.selection === ds &&
             q.monHoc === monHoc &&
             q.loai === loai &&
             q.chuDe === chuDe &&
@@ -204,7 +215,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     } else if (loaiBaiTapList.includes("combo")) {
       window.location.href = "combo.html";
     } else {
-      window.location.href = "index.html"; // hoặc bài khác
+      window.location.href = "index.html"; // hoặc trang tổng hợp nào khác
     }
   });
 });
