@@ -32,15 +32,13 @@ async function loadXLSX() {
 
 const popupImport = document.getElementById("popupImport");
 const popupFile = document.getElementById("popupFile");
-const popupName = document.getElementById("popupName");
 const selectionList = document.getElementById("selectionList");
 const previewBody = document.getElementById("previewBody");
 
 popupImport.addEventListener("click", async () => {
   const file = popupFile.files[0];
-  const name = popupName.value.trim();
-  if (!file || !name) {
-    alert("Vui lòng chọn file và nhập tên danh sách.");
+  if (!file) {
+    alert("Vui lòng chọn file.");
     return;
   }
 
@@ -52,6 +50,14 @@ popupImport.addEventListener("click", async () => {
     const workbook = XLSX.read(data, { type: "array" });
     const sheet = workbook.Sheets[workbook.SheetNames[0]];
     const json = XLSX.utils.sheet_to_json(sheet, { defval: "" });
+
+    if (!json.length || !json[0]["Phần"]) {
+      alert("❌ Không tìm thấy cột 'Phần' trong file Excel.");
+      return;
+    }
+
+    const partName = json[0]["Phần"].toString().trim();
+    const collectionName = `selection_${partName.replace(/\s+/g, "_")}`;
 
     const raw = json.map((row, index) => ({
       stt: index + 1,
@@ -76,7 +82,7 @@ popupImport.addEventListener("click", async () => {
     const questions = raw.filter(
       (q) => q.monHoc && q.loai && q.chuDe && q.cauHoi && q.dapAn
     );
-    const collectionName = `selection_${name.replace(/\s+/g, "_")}`;
+
     const questionsCollection = collection(db, collectionName);
 
     try {
@@ -87,7 +93,7 @@ popupImport.addEventListener("click", async () => {
         createdAt: Date.now(),
       });
 
-      alert(`✅ Đã import ${questions.length} câu hỏi.`);
+      alert(`✅ Đã import ${questions.length} câu hỏi vào: ${partName}`);
       document.getElementById("popupOverlay").click();
       loadSelections();
     } catch (err) {
@@ -100,10 +106,6 @@ popupImport.addEventListener("click", async () => {
         alert("❌ Có lỗi xảy ra khi import dữ liệu.");
       }
     }
-
-    alert(`✅ Đã import ${questions.length} câu hỏi.`);
-    document.getElementById("popupOverlay").click();
-    loadSelections();
   };
 
   reader.readAsArrayBuffer(file);
@@ -130,7 +132,6 @@ async function loadSelections() {
         snap.docs.map((docSnap) => deleteDoc(doc(db, colName, docSnap.id)))
       );
 
-      // Xoá bản ghi meta tương ứng
       const metaSnap = await getDocs(collection(db, "selectionMeta"));
       const metaDoc = metaSnap.docs.find((d) => d.data().name === colName);
       if (metaDoc) await deleteDoc(doc(db, "selectionMeta", metaDoc.id));

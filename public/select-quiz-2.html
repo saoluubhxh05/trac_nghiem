@@ -88,5 +88,20 @@
     <button id="batDauBtn">🚀 Bắt đầu làm bài</button>
 
     <script type="module" src="js/select-quiz-2.js"></script>
+
+    <script type="module" src="js/header.js"></script>
+    <script type="module">
+      import { initFirebaseAuth } from "./js/firebase.js";
+      initFirebaseAuth();
+
+      document
+        .getElementById("translateCheckbox")
+        .addEventListener("change", (e) => {
+          document.getElementById("translateOptions").style.display = e.target
+            .checked
+            ? "block"
+            : "none";
+        });
+    </script>
   </body>
 </html>
