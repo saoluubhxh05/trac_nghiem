@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="vi">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Danh sách dữ liệu</title>
+    <link rel="stylesheet" href="css/style.css" />
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        padding: 20px;
+      }
+      #selectionTable,
+      #previewTable {
+        width: 100%;
+        border-collapse: collapse;
+        margin-top: 10px;
+      }
+      #selectionTable th,
+      #selectionTable td,
+      #previewTable th,
+      #previewTable td {
+        border: 1px solid #ccc;
+        padding: 8px;
+        text-align: left;
+      }
+      #selectionListContainer {
+        max-height: 300px;
+        overflow-y: auto;
+        margin-bottom: 20px;
+        border: 1px solid #ddd;
+        padding: 10px;
+      }
+      .popup {
+        display: none;
+        position: fixed;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        background: white;
+        padding: 20px;
+        border: 1px solid #ccc;
+        z-index: 1000;
+      }
+      .popup input {
+        display: block;
+        margin-bottom: 10px;
+      }
+      .overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: rgba(0, 0, 0, 0.3);
+        z-index: 999;
+        display: none;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>📚 Danh sách dữ liệu</h1>
+
+    <button id="addBtn">➕ Thêm</button>
+
+    <div id="selectionListContainer">
+      <table id="selectionTable">
+        <thead>
+          <tr>
+            <th>Tên danh sách</th>
+            <th>Thao tác</th>
+          </tr>
+        </thead>
+        <tbody id="selectionList"></tbody>
+      </table>
+    </div>
+
+    <h2>📄 Preview câu hỏi</h2>
+    <table id="previewTable">
+      <thead>
+        <tr>
+          <th>STT</th>
+          <th>Môn học</th>
+          <th>Loại</th>
+          <th>Chủ đề</th>
+          <th>Câu hỏi</th>
+          <th>Đáp án</th>
+        </tr>
+      </thead>
+      <tbody id="previewBody"></tbody>
+    </table>
+
+    <div class="overlay" id="popupOverlay"></div>
+    <div class="popup" id="popupForm">
+      <h3>📥 Import danh sách mới</h3>
+      <input type="file" id="popupFile" />
+      <input type="text" id="popupName" placeholder="Nhập tên danh sách" />
+      <button id="popupImport">📤 Import</button>
+    </div>
+
+    <script>
+      document.getElementById("addBtn").onclick = () => {
+        document.getElementById("popupOverlay").style.display = "block";
+        document.getElementById("popupForm").style.display = "block";
+      };
+
+      document.getElementById("popupOverlay").onclick = () => {
+        document.getElementById("popupOverlay").style.display = "none";
+        document.getElementById("popupForm").style.display = "none";
+      };
+
+      document.getElementById("popupImport").onclick = () => {
+        const file = document.getElementById("popupFile").files[0];
+        const name = document.getElementById("popupName").value.trim();
+        if (!file || !name) {
+          alert("Vui lòng chọn file và nhập tên danh sách.");
+          return;
+        }
+        // Gọi logic import dữ liệu ở đây
+        alert(`Đã import file cho danh sách: ${name}`);
+        document.getElementById("popupOverlay").click();
+      };
+
+      // Giả lập dữ liệu ban đầu
+      const selections = [
+        "Luyện dịch EN",
+        "Trắc nghiệm Sinh học",
+        "Tiếng Trung Unit 5",
+      ];
+      const listBody = document.getElementById("selectionList");
+      const previewBody = document.getElementById("previewBody");
+
+      selections.forEach((sel) => {
+        const row = document.createElement("tr");
+        const nameCell = document.createElement("td");
+        nameCell.textContent = sel;
+        nameCell.style.cursor = "pointer";
+        nameCell.onclick = () => {
+          previewBody.innerHTML = "";
+          for (let i = 1; i <= 5; i++) {
+            const r = document.createElement("tr");
+            r.innerHTML = `<td>${i}</td><td>English</td><td>Quiz</td><td>Unit ${i}</td><td>Câu hỏi ${i}</td><td>Đáp án ${i}</td>`;
+            previewBody.appendChild(r);
+          }
+        };
+        const deleteBtn = document.createElement("button");
+        deleteBtn.textContent = "❌ Xóa";
+        deleteBtn.onclick = () => {
+          row.remove();
+          previewBody.innerHTML = "";
+        };
+        const actionCell = document.createElement("td");
+        actionCell.appendChild(deleteBtn);
+        row.appendChild(nameCell);
+        row.appendChild(actionCell);
+        listBody.appendChild(row);
+      });
+    </script>
+  </body>
+</html>
