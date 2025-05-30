@@ -66,19 +66,20 @@
         onAuthStateChanged,
       } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 
-      document.addEventListener("DOMContentLoaded", () => {
-        initFirebaseAuth();
+      initFirebaseAuth(); // ⚠️ GỌI TRỰC TIẾP, KHÔNG gói trong DOMContentLoaded
 
-        const allowedEmail = "tqminh1982@gmail.com"; // 🔐 email được phép
-        const importDiv = document.getElementById("importBtnContainer");
+      const allowedEmail = "tqminh1982@gmail.com";
+      const importDiv = document.getElementById("importBtnContainer");
 
+      // Gắn sau 300ms để đợi login widget render
+      setTimeout(() => {
         onAuthStateChanged(getAuth(), (user) => {
           console.log("👤 Đang đăng nhập:", user?.email);
           if (user?.email === allowedEmail) {
             importDiv.style.display = "block";
           }
         });
-      });
+      }, 300);
     </script>
 
     <!-- EMOTION VÀ CHUỖI BỎ BÀI -->
