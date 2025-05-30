@@ -74,13 +74,13 @@ function renderChuDeTheoBoLoc() {
     .sort((a, b) => a[0].localeCompare(b[0], "vi", { numeric: true }))
     .forEach(([cd, count]) => {
       const row = document.createElement("div");
-      row.style.marginBottom = "8px";
+      row.className = "chu-de-row";
       row.innerHTML = `
         <label>
           <input type="checkbox" value="${cd}" data-max="${count}" class="chu-de-checkbox" />
           ${cd}
         </label>
-        <input type="number" class="so-cau-input" value="${count}" min="1" max="${count}" style="width: 60px; margin-left: 10px;" />
+        <input type="number" class="so-cau-input" value="${count}" min="1" max="${count}" />
         <span style="font-size: 12px; color: gray;">(Tối đa: ${count})</span>
       `;
       chuDeContainer.appendChild(row);
