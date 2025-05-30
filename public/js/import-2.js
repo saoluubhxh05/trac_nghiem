@@ -81,6 +81,12 @@ popupImport.addEventListener("click", async () => {
 
     await Promise.all(questions.map((q) => addDoc(questionsCollection, q)));
 
+    // Ghi tên selection vào selectionMeta
+    await addDoc(collection(db, "selectionMeta"), {
+      name: collectionName,
+      createdAt: Date.now(),
+    });
+
     alert(`✅ Đã import ${questions.length} câu hỏi.`);
     document.getElementById("popupOverlay").click();
     loadSelections();
@@ -91,10 +97,9 @@ popupImport.addEventListener("click", async () => {
 
 async function loadSelections() {
   selectionList.innerHTML = "";
-  const collections = [
-    "selection_Luyen_dich_EN",
-    "selection_Tieng_Trung_Unit_5",
-  ];
+  const metaSnap = await getDocs(collection(db, "selectionMeta"));
+  const collections = metaSnap.docs.map((doc) => doc.data().name);
+
   for (const colName of collections) {
     const row = document.createElement("tr");
     const name = colName.replace("selection_", "").replace(/_/g, " ");
@@ -110,9 +115,16 @@ async function loadSelections() {
       await Promise.all(
         snap.docs.map((docSnap) => deleteDoc(doc(db, colName, docSnap.id)))
       );
+
+      // Xoá bản ghi meta tương ứng
+      const metaSnap = await getDocs(collection(db, "selectionMeta"));
+      const metaDoc = metaSnap.docs.find((d) => d.data().name === colName);
+      if (metaDoc) await deleteDoc(doc(db, "selectionMeta", metaDoc.id));
+
       loadSelections();
       previewBody.innerHTML = "";
     };
+
     const actionCell = document.createElement("td");
     actionCell.appendChild(delBtn);
 
