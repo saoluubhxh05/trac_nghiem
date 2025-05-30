@@ -26,10 +26,9 @@ const auth = getAuth(app);
 const provider = new GoogleAuthProvider();
 
 export function initFirebaseAuth() {
-  const interval = setInterval(() => {
+  window.addEventListener("DOMContentLoaded", () => {
     const loginArea = document.getElementById("loginArea");
     if (!loginArea) return;
-    clearInterval(interval);
 
     const loginDiv = document.createElement("div");
     loginDiv.id = "loginWidget";
@@ -86,5 +85,5 @@ export function initFirebaseAuth() {
         userMenu.style.display = "none";
       }
     });
-  }, 100);
+  });
 }
