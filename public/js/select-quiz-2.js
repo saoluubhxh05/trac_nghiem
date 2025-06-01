@@ -51,7 +51,6 @@ function updateSelectOptions(selectId, options) {
     opt.value = opt.textContent = options[0];
     select.appendChild(opt);
     select.value = options[0];
-    // Tự gọi change nếu chỉ có 1
     select.dispatchEvent(new Event("change"));
     return;
   }
@@ -106,14 +105,16 @@ function renderChuDeTheoBoLoc() {
     });
 }
 
-document.addEventListener("DOMContentLoaded", async () => {
-  const danhSachList = [
-    "Vocabulary_in_use_Elementary",
-    "301_câu_đàm_thoại_tiếng_Hoa",
-    // 👉 Thêm các danh sách khác nếu có
-  ];
+async function loadSelectionList() {
+  const metaSnap = await getDocs(collection(db, "selectionMeta"));
+  const list = metaSnap.docs.map((doc) =>
+    doc.data().name.replace("selection_", "")
+  );
+  updateSelectOptions("danhSach", list);
+}
 
-  updateSelectOptions("danhSach", danhSachList);
+document.addEventListener("DOMContentLoaded", async () => {
+  await loadSelectionList();
 
   document.getElementById("danhSach").addEventListener("change", async () => {
     const ds = document.getElementById("danhSach").value;
@@ -228,7 +229,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     } else if (loaiBaiTapList.includes("combo")) {
       window.location.href = "combo.html";
     } else {
-      window.location.href = "index.html"; // hoặc bài khác
+      window.location.href = "index.html";
     }
   });
 });
