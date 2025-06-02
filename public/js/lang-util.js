@@ -15,18 +15,27 @@ export function normalize(text, lang = "en") {
     // Chỉ giữ lại ký tự tiếng Trung (thuộc Unicode CJK)
     return text
       .normalize("NFD")
-      .replace(/[^\p{Script=Han}]/gu, "") // chỉ giữ lại chữ Hán
+      .replace(/[^\p{Script=Han}]/gu, "")
       .trim();
   }
 
   if (lang === "ja" || lang === "ko") {
-    return text.trim(); // Giữ nguyên vì ít lỗi phát âm
+    return text.trim();
   }
 
-  // Với ngôn ngữ có dấu cách (en, vi...)
+  if (lang === "vi") {
+    return text
+      .normalize("NFD") // chuẩn hoá tổ hợp dấu tiếng Việt
+      .replace(/[\u0300-\u036f]/g, "") // xoá dấu thanh (huyền, sắc, hỏi, ngã...)
+      .toLowerCase()
+      .replace(/[.,!?;:]/g, "") // loại dấu câu
+      .trim();
+  }
+
+  // Với ngôn ngữ có dấu cách khác (en, ...)
   return text
     .toLowerCase()
-    .replace(/[.,!?]/g, "")
+    .replace(/[.,!?;:]/g, "")
     .trim();
 }
 
