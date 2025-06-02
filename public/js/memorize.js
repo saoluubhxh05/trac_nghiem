@@ -8,7 +8,6 @@ import {
 } from "./lang-util.js";
 
 import { taoNutBaiTiepTheo } from "./navigation.js";
-const language = localStorage.getItem("language") || "en";
 
 const questions = JSON.parse(localStorage.getItem("selectedQuestions") || "[]");
 if (!questions.length) {
@@ -31,11 +30,8 @@ function shuffle(arr) {
 
 function renderStep() {
   container.innerHTML = "";
-  if (step === 0) {
-    renderMemorizeStep();
-  } else {
-    renderFillBlankStep();
-  }
+  if (step === 0) renderMemorizeStep();
+  else renderFillBlankStep();
 }
 
 function renderMemorizeStep() {
@@ -188,17 +184,15 @@ function renderFillBlankStep() {
     <div id="choiceArea" style="margin-top:12px;display:flex;flex-wrap:wrap;gap:12px;padding:12px;border:1px dashed #aaa;border-radius:8px;">
       ${choices
         .map(
-          (w) => `
-        <span class="choice" style="padding:8px 14px;border:1px solid #ccc;border-radius:6px;cursor:pointer;font-size:16px;background:#f5f5f5;">
-          ${w}
-        </span>
-      `
+          (w) =>
+            `<span class="choice" style="padding:8px 14px;border:1px solid #ccc;border-radius:6px;cursor:pointer;font-size:16px;background:#f5f5f5;">${w}</span>`
         )
         .join("")}
     </div>
   `;
   renderQuestionImage(q.tenAnh, container);
 
+  // Click để chọn từ
   document.querySelectorAll(".choice").forEach((choice) => {
     choice.onclick = () => {
       selectedWord = choice.textContent;
@@ -209,11 +203,12 @@ function renderFillBlankStep() {
     };
   });
 
+  // Click vào chỗ trống để điền từ (hoặc sửa nếu sai)
   Object.keys(blanks).forEach((id) => {
     const el = document.getElementById(id);
     el.onclick = () => {
-      // Cho chọn lại nếu đã điền sai từ trước
       if (!selectedWord && el.dataset.word) {
+        // Nếu chưa chọn từ mà nhấn vào chỗ đã điền -> cho chọn lại
         const wrongWord = el.dataset.word;
         el.textContent = "_____";
         el.style.color = "black";
@@ -242,14 +237,9 @@ function renderFillBlankStep() {
       el.style.pointerEvents = "auto";
       el.setAttribute("data-word", selectedWord);
 
-      if (
-        normalize(selectedWord.trim(), language) ===
-        normalize(blanks[id].trim(), language)
-      ) {
+      if (normalize(selectedWord, language) === normalize(blanks[id], language))
         el.style.color = "green";
-      } else {
-        el.style.color = "red";
-      }
+      else el.style.color = "red";
 
       document.querySelectorAll(".choice").forEach((c) => {
         if (c.textContent === selectedWord) c.remove();
@@ -258,10 +248,8 @@ function renderFillBlankStep() {
       selectedWord = null;
 
       const remaining = Object.keys(blanks).filter((id) => {
-        const t = document.getElementById(id);
-        const filled = t.textContent.trim();
-        const correct = blanks[id].trim();
-        return normalize(filled, language) !== normalize(correct, language);
+        const el = document.getElementById(id);
+        return el.textContent !== blanks[id];
       });
 
       if (remaining.length === 0) {
