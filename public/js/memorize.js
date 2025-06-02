@@ -31,7 +31,14 @@ function renderStep() {
 
 function renderMemorizeStep() {
   const q = questions[currentIndex];
-  accumulatedMatched = new Array(splitWords(q.dapAn).length).fill("");
+  if (
+    !accumulatedMatched.length ||
+    accumulatedMatched.length !== splitWords(q.dapAn, q.language).length
+  ) {
+    accumulatedMatched = new Array(splitWords(q.dapAn, q.language).length).fill(
+      ""
+    );
+  }
   readLimit = 3;
   let hidden = false;
 
@@ -48,7 +55,7 @@ function renderMemorizeStep() {
 
   document.getElementById("readBtn").onclick = () => {
     if (readLimit > 0) {
-      speak(q.dapAn, q.language); // dùng đúng ngôn ngữ
+      speak(q.dapAn, q.language);
       readLimit--;
       document.getElementById(
         "readBtn"
@@ -74,7 +81,7 @@ function renderMemorizeStep() {
 
     if (!recognition) {
       recognition = new SpeechRecognition();
-      recognition.lang = langToLocale(q.language); // cần import từ lang-util.js
+      recognition.lang = langToLocale(q.language);
       recognition.interimResults = true;
     }
 
@@ -99,20 +106,25 @@ function renderMemorizeStep() {
 
       setTimeout(() => {
         if (finalTranscript) {
-          const q = questions[currentIndex];
           const result = compareWords(
             finalTranscript,
             q.dapAn,
             q.language,
             accumulatedMatched
           );
-
           accumulatedMatched = result.accumulatedArray;
+
+          const accumulatedLine = result.accumulated
+            ? `<p><strong>Đáp án tích lũy:</strong> ${result.accumulated}</p>`
+            : "";
+
           document.getElementById("result").innerHTML = `
             <p><strong>Bạn nói:</strong> "${finalTranscript}"</p>
             <p><strong>Đáp án:</strong> ${result.revealed}</p>
             <p><strong>💯 Độ khớp:</strong> ${result.percent}%</p>
+            ${accumulatedLine}
           `;
+
           if (result.percent >= 70) {
             const nextBtn = document.createElement("button");
             nextBtn.textContent = "✅ Tiếp tục điền từ vào chỗ trống";
