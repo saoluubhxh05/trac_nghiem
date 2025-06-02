@@ -4,8 +4,6 @@ import { compareWords, splitWords } from "./lang-util.js";
 import { taoNutBaiTiepTheo } from "./navigation.js";
 import { langToLocale } from "./lang-util.js";
 
-const language = localStorage.getItem("language") || "en";
-
 const questions = JSON.parse(localStorage.getItem("selectedQuestions") || "[]");
 if (!questions.length) {
   alert("Không có dữ liệu. Vui lòng chọn bài trước.");
@@ -50,7 +48,7 @@ function renderMemorizeStep() {
 
   document.getElementById("readBtn").onclick = () => {
     if (readLimit > 0) {
-      speak(q.dapAn, language); // dùng đúng ngôn ngữ
+      speak(q.dapAn, q.language); // dùng đúng ngôn ngữ
       readLimit--;
       document.getElementById(
         "readBtn"
@@ -76,7 +74,7 @@ function renderMemorizeStep() {
 
     if (!recognition) {
       recognition = new SpeechRecognition();
-      recognition.lang = langToLocale(language); // cần import từ lang-util.js
+      recognition.lang = langToLocale(q.language); // cần import từ lang-util.js
       recognition.interimResults = true;
     }
 
@@ -105,7 +103,7 @@ function renderMemorizeStep() {
           const result = compareWords(
             finalTranscript,
             q.dapAn,
-            language,
+            q.language,
             accumulatedMatched
           );
 
