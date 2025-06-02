@@ -192,8 +192,22 @@ function renderFillBlankStep() {
         )
         .join("")}
     </div>
+    <div id="revealAnswer" style="margin-top:20px;font-size:18px;line-height:1.6;color:#444;"></div>
   `;
   renderQuestionImage(q.tenAnh, container);
+
+  function updateRevealAnswer() {
+    const revealed = words.map((word, i) => {
+      if (!hiddenIndexes.includes(i)) return word;
+      const el = document.getElementById(`blank-${i}`);
+      const filled = el?.getAttribute("data-word") || "";
+      return normalize(filled, q.language) === normalize(word, q.language)
+        ? word
+        : "_____";
+    });
+    document.getElementById("revealAnswer").innerHTML =
+      `<strong>Đáp án đúng dần:</strong> ` + revealed.join(" ");
+  }
 
   document.querySelectorAll(".choice").forEach((choice) => {
     choice.onclick = () => {
@@ -227,6 +241,7 @@ function renderFillBlankStep() {
           choiceClone.style.border = "2px solid blue";
         };
         document.getElementById("choiceArea").appendChild(choiceClone);
+        updateRevealAnswer();
         return;
       }
 
@@ -239,16 +254,14 @@ function renderFillBlankStep() {
       const isCorrect =
         normalize(selectedWord, q.language) ===
         normalize(blanks[id], q.language);
-
       el.style.color = isCorrect ? "green" : "red";
-      el.classList.remove("wrong", "correct");
-      el.classList.add(isCorrect ? "correct" : "wrong");
 
       document.querySelectorAll(".choice").forEach((c) => {
         if (c.textContent === selectedWord) c.remove();
       });
 
       selectedWord = null;
+      updateRevealAnswer();
 
       const remaining = Object.keys(blanks).filter((id) => {
         const el = document.getElementById(id);
@@ -277,6 +290,8 @@ function renderFillBlankStep() {
       }
     };
   });
+
+  updateRevealAnswer(); // Gọi lần đầu
 }
 
 renderStep();
