@@ -184,15 +184,15 @@ function renderFillBlankStep() {
     <div id="choiceArea" style="margin-top:12px;display:flex;flex-wrap:wrap;gap:12px;padding:12px;border:1px dashed #aaa;border-radius:8px;">
       ${choices
         .map(
-          (w) =>
-            `<span class="choice" style="padding:8px 14px;border:1px solid #ccc;border-radius:6px;cursor:pointer;font-size:16px;background:#f5f5f5;">${w}</span>`
+          (w) => `
+        <span class="choice" style="padding:8px 14px;border:1px solid #ccc;border-radius:6px;cursor:pointer;font-size:16px;background:#f5f5f5;">${w}</span>
+      `
         )
         .join("")}
     </div>
   `;
   renderQuestionImage(q.tenAnh, container);
 
-  // Click để chọn từ
   document.querySelectorAll(".choice").forEach((choice) => {
     choice.onclick = () => {
       selectedWord = choice.textContent;
@@ -203,30 +203,27 @@ function renderFillBlankStep() {
     };
   });
 
-  // Click vào chỗ trống để điền từ (hoặc sửa nếu sai)
   Object.keys(blanks).forEach((id) => {
     const el = document.getElementById(id);
     el.onclick = () => {
       if (!selectedWord && el.dataset.word) {
-        // Nếu chưa chọn từ mà nhấn vào chỗ đã điền -> cho chọn lại
-        const wrongWord = el.dataset.word;
+        const word = el.dataset.word;
         el.textContent = "_____";
         el.style.color = "black";
         el.removeAttribute("data-word");
 
         const choiceClone = document.createElement("span");
         choiceClone.className = "choice";
-        choiceClone.textContent = wrongWord;
+        choiceClone.textContent = word;
         choiceClone.style =
           "padding:8px 14px;border:1px solid #ccc;border-radius:6px;cursor:pointer;font-size:16px;background:#f5f5f5;margin:2px;";
         choiceClone.onclick = () => {
-          selectedWord = wrongWord;
+          selectedWord = word;
           document
             .querySelectorAll(".choice")
             .forEach((c) => (c.style.border = "1px solid #ccc"));
           choiceClone.style.border = "2px solid blue";
         };
-
         document.getElementById("choiceArea").appendChild(choiceClone);
         return;
       }
@@ -234,12 +231,17 @@ function renderFillBlankStep() {
       if (!selectedWord) return;
 
       el.textContent = selectedWord;
-      el.style.pointerEvents = "auto";
       el.setAttribute("data-word", selectedWord);
+      el.style.pointerEvents = "auto";
 
-      if (normalize(selectedWord, language) === normalize(blanks[id], language))
+      if (
+        normalize(selectedWord, q.language) ===
+        normalize(blanks[id], q.language)
+      ) {
         el.style.color = "green";
-      else el.style.color = "red";
+      } else {
+        el.style.color = "red";
+      }
 
       document.querySelectorAll(".choice").forEach((c) => {
         if (c.textContent === selectedWord) c.remove();
@@ -249,11 +251,15 @@ function renderFillBlankStep() {
 
       const remaining = Object.keys(blanks).filter((id) => {
         const el = document.getElementById(id);
-        return el.textContent !== blanks[id];
+        const current = el.getAttribute("data-word") || "";
+        return (
+          normalize(current, q.language) !== normalize(blanks[id], q.language)
+        );
       });
 
-      if (remaining.length === 0) {
+      if (remaining.length === 0 && !document.getElementById("nextBtn")) {
         const btn = document.createElement("button");
+        btn.id = "nextBtn";
         btn.textContent = "➡️ Chuyển sang câu tiếp theo";
         btn.style.marginTop = "20px";
         btn.onclick = () => {
