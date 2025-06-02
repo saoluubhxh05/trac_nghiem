@@ -1,8 +1,13 @@
 import { speak } from "./speech-util.js";
 import { renderQuestionImage } from "./image-util.js";
-import { compareWords, splitWords } from "./lang-util.js";
+import {
+  langToLocale,
+  normalize,
+  splitWords,
+  compareWords,
+} from "./lang-util.js";
+
 import { taoNutBaiTiepTheo } from "./navigation.js";
-import { langToLocale } from "./lang-util.js";
 
 const questions = JSON.parse(localStorage.getItem("selectedQuestions") || "[]");
 if (!questions.length) {
@@ -90,22 +95,27 @@ function renderMemorizeStep() {
       isListening = true;
       recognition.start();
       document.getElementById("micStatus").textContent = "🎙️ Đang nghe...";
+      speakBtn.textContent = "⏳ Đang ghi...";
+
       recognition.onresult = (event) => {
         const r = event.results[event.results.length - 1];
         if (r.isFinal) finalTranscript = r[0].transcript.trim();
       };
+
       recognition.onerror = (e) => {
         document.getElementById("micStatus").textContent =
           "❌ Lỗi ghi âm: " + e.error;
         isListening = false;
+        speakBtn.textContent = "🎙️ Bắt đầu nói";
       };
     } else {
       recognition.stop();
       isListening = false;
+      speakBtn.textContent = "🎙️ Bắt đầu nói";
       document.getElementById("micStatus").textContent = "";
 
       setTimeout(() => {
-        if (finalTranscript) {
+        if (finalTranscript.trim()) {
           const result = compareWords(
             finalTranscript,
             q.dapAn,
@@ -136,9 +146,8 @@ function renderMemorizeStep() {
             container.appendChild(nextBtn);
           }
         } else {
-          document.getElementById(
-            "result"
-          ).innerHTML = `<p style="color:red">⚠️ Không nhận được nội dung nào!</p>`;
+          document.getElementById("micStatus").textContent =
+            "⚠️ Không nhận được nội dung nào!";
         }
       }, 300);
     }
@@ -147,7 +156,7 @@ function renderMemorizeStep() {
 
 function renderFillBlankStep() {
   const q = questions[currentIndex];
-  const words = splitWords(q.dapAn);
+  const words = splitWords(q.dapAn, q.language);
   const hideCount = Math.max(1, Math.floor(words.length / 3));
   const hiddenIndexes = shuffle([...Array(words.length).keys()]).slice(
     0,
@@ -161,7 +170,7 @@ function renderFillBlankStep() {
       if (hiddenIndexes.includes(i)) {
         const id = `blank-${i}`;
         blanks[id] = word;
-        return `<span id="${id}" style="display:inline-block;min-width:60px;border-bottom:2px dashed #888;">_____</span>`;
+        return `<span id="${id}" class="blank" style="display:inline-block;min-width:60px;border-bottom:2px dashed #888;cursor:pointer;">_____</span>`;
       }
       return word;
     })
@@ -172,7 +181,7 @@ function renderFillBlankStep() {
   container.innerHTML = `
     <h2>📝 Điền vào chỗ trống</h2>
     <p style="line-height:1.8">${sentenceHTML}</p>
-    <div style="margin-top:12px;display:flex;flex-wrap:wrap;gap:12px;padding:12px;border:1px dashed #aaa;border-radius:8px;">
+    <div id="choiceArea" style="margin-top:12px;display:flex;flex-wrap:wrap;gap:12px;padding:12px;border:1px dashed #aaa;border-radius:8px;">
       ${choices
         .map(
           (w) =>
@@ -183,6 +192,7 @@ function renderFillBlankStep() {
   `;
   renderQuestionImage(q.tenAnh, container);
 
+  // Click để chọn từ
   document.querySelectorAll(".choice").forEach((choice) => {
     choice.onclick = () => {
       selectedWord = choice.textContent;
@@ -193,14 +203,42 @@ function renderFillBlankStep() {
     };
   });
 
+  // Click vào chỗ trống để điền từ (hoặc sửa nếu sai)
   Object.keys(blanks).forEach((id) => {
     const el = document.getElementById(id);
     el.onclick = () => {
-      if (!selectedWord) return;
-      el.textContent = selectedWord;
-      el.style.pointerEvents = "none";
+      if (!selectedWord && el.dataset.word) {
+        // Nếu chưa chọn từ mà nhấn vào chỗ đã điền -> cho chọn lại
+        const wrongWord = el.dataset.word;
+        el.textContent = "_____";
+        el.style.color = "black";
+        el.removeAttribute("data-word");
 
-      if (selectedWord === blanks[id]) el.style.color = "green";
+        const choiceClone = document.createElement("span");
+        choiceClone.className = "choice";
+        choiceClone.textContent = wrongWord;
+        choiceClone.style =
+          "padding:8px 14px;border:1px solid #ccc;border-radius:6px;cursor:pointer;font-size:16px;background:#f5f5f5;margin:2px;";
+        choiceClone.onclick = () => {
+          selectedWord = wrongWord;
+          document
+            .querySelectorAll(".choice")
+            .forEach((c) => (c.style.border = "1px solid #ccc"));
+          choiceClone.style.border = "2px solid blue";
+        };
+
+        document.getElementById("choiceArea").appendChild(choiceClone);
+        return;
+      }
+
+      if (!selectedWord) return;
+
+      el.textContent = selectedWord;
+      el.style.pointerEvents = "auto";
+      el.setAttribute("data-word", selectedWord);
+
+      if (normalize(selectedWord, language) === normalize(blanks[id], language))
+        el.style.color = "green";
       else el.style.color = "red";
 
       document.querySelectorAll(".choice").forEach((c) => {
@@ -210,8 +248,8 @@ function renderFillBlankStep() {
       selectedWord = null;
 
       const remaining = Object.keys(blanks).filter((id) => {
-        const t = document.getElementById(id);
-        return t.textContent !== blanks[id];
+        const el = document.getElementById(id);
+        return el.textContent !== blanks[id];
       });
 
       if (remaining.length === 0) {
