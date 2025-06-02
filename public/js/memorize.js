@@ -8,6 +8,7 @@ import {
 } from "./lang-util.js";
 
 import { taoNutBaiTiepTheo } from "./navigation.js";
+const language = localStorage.getItem("language") || "en";
 
 const questions = JSON.parse(localStorage.getItem("selectedQuestions") || "[]");
 if (!questions.length) {
@@ -248,8 +249,10 @@ function renderFillBlankStep() {
       selectedWord = null;
 
       const remaining = Object.keys(blanks).filter((id) => {
-        const el = document.getElementById(id);
-        return el.textContent !== blanks[id];
+        const t = document.getElementById(id);
+        return (
+          normalize(t.textContent, language) !== normalize(blanks[id], language)
+        );
       });
 
       if (remaining.length === 0) {

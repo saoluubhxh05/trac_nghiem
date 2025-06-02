@@ -24,12 +24,14 @@ export function normalize(text, lang = "en") {
   }
 
   if (lang === "vi") {
-    return text
-      .normalize("NFD") // chuẩn hoá tổ hợp dấu tiếng Việt
-      .replace(/[\u0300-\u036f]/g, "") // xoá dấu thanh (huyền, sắc, hỏi, ngã...)
-      .toLowerCase()
-      .replace(/[.,!?;:]/g, "") // loại dấu câu
-      .trim();
+    return (
+      text
+        .normalize("NFD") // chuẩn hoá tổ hợp dấu tiếng Việt
+        //.replace(/[\u0300-\u036f]/g, "") // xoá dấu thanh (huyền, sắc, hỏi, ngã...)
+        .toLowerCase()
+        .replace(/[.,!?;:]/g, "") // loại dấu câu
+        .trim()
+    );
   }
 
   // Với ngôn ngữ có dấu cách khác (en, ...)
