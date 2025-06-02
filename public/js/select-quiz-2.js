@@ -228,6 +228,8 @@ document.addEventListener("DOMContentLoaded", async () => {
         language === "zh" ? "translate-zh.html" : "translate-en.html";
     } else if (loaiBaiTapList.includes("combo")) {
       window.location.href = "combo.html";
+    } else if (loaiBaiTapList.includes("memorize")) {
+      window.location.href = "memorize.html";
     } else {
       window.location.href = "index.html";
     }
