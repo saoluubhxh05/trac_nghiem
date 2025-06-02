@@ -26,18 +26,17 @@ export function normalize(text, lang = "en") {
   if (lang === "vi") {
     return (
       text
-        .normalize("NFD") // chuẩn hoá tổ hợp dấu tiếng Việt
-        //.replace(/[\u0300-\u036f]/g, "") // xoá dấu thanh (huyền, sắc, hỏi, ngã...)
+        .normalize("NFD")
+        // .replace(/[\u0300-\u036f]/g, "") // giữ nguyên dấu
         .toLowerCase()
-        .replace(/[.,!?;:]/g, "") // loại dấu câu
+        .replace(/[.,!?;:“”"']/g, "")
         .trim()
     );
   }
 
-  // Với ngôn ngữ có dấu cách khác (en, ...)
   return text
     .toLowerCase()
-    .replace(/[.,!?;:]/g, "")
+    .replace(/[.,!?;:“”"']/g, "")
     .trim();
 }
 

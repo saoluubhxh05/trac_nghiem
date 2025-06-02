@@ -9,6 +9,8 @@ import {
 
 import { taoNutBaiTiepTheo } from "./navigation.js";
 
+const language = localStorage.getItem("language") || "en";
+
 const questions = JSON.parse(localStorage.getItem("selectedQuestions") || "[]");
 if (!questions.length) {
   alert("Không có dữ liệu. Vui lòng chọn bài trước.");
@@ -234,14 +236,13 @@ function renderFillBlankStep() {
       el.setAttribute("data-word", selectedWord);
       el.style.pointerEvents = "auto";
 
-      if (
+      const isCorrect =
         normalize(selectedWord, q.language) ===
-        normalize(blanks[id], q.language)
-      ) {
-        el.style.color = "green";
-      } else {
-        el.style.color = "red";
-      }
+        normalize(blanks[id], q.language);
+
+      el.style.color = isCorrect ? "green" : "red";
+      el.classList.remove("wrong", "correct");
+      el.classList.add(isCorrect ? "correct" : "wrong");
 
       document.querySelectorAll(".choice").forEach((c) => {
         if (c.textContent === selectedWord) c.remove();
