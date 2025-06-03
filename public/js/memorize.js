@@ -51,7 +51,11 @@ function renderMemorizeStep() {
 
   container.innerHTML = `
     <h2>📖 Đọc thuộc lòng</h2>
-    <p id="sentence" style="font-size:20px;line-height:1.6">${q.dapAn}</p>
+    <p id="sentence" style="font-size:20px;line-height:1.6;white-space:pre-line">${q.dapAn.replace(
+      /\|/g,
+      "\n"
+    )}</p>
+
     <button id="readBtn">🔊 Đọc lại (${readLimit} lần)</button>
     <button id="hideBtn">🙈 Ẩn câu để bắt đầu kiểm tra</button>
     <button id="speakBtn" style="display:none">🎙️ Bắt đầu nói</button>

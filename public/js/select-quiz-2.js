@@ -116,6 +116,12 @@ async function loadSelectionList() {
 document.addEventListener("DOMContentLoaded", async () => {
   await loadSelectionList();
 
+  const saved = JSON.parse(localStorage.getItem("quizSettings") || "{}");
+  if (saved.danhSach) {
+    document.getElementById("danhSach").value = saved.danhSach;
+    document.getElementById("danhSach").dispatchEvent(new Event("change"));
+  }
+
   document.getElementById("danhSach").addEventListener("change", async () => {
     const ds = document.getElementById("danhSach").value;
     if (!ds) return;
@@ -133,7 +139,31 @@ document.addEventListener("DOMContentLoaded", async () => {
     updateSelectOptions("monHoc", getUniqueValues("monHoc"));
     updateSelectOptions("loai", getUniqueValues("loai"));
 
+    // Gán lại các lựa chọn từ localStorage nếu có
+    const saved = JSON.parse(localStorage.getItem("quizSettings") || "{}");
+    if (saved.language)
+      document.getElementById("ngonNgu").value = saved.language;
+    if (saved.monHoc) document.getElementById("monHoc").value = saved.monHoc;
+    if (saved.loai) document.getElementById("loai").value = saved.loai;
+
     renderChuDeTheoBoLoc();
+
+    // Khôi phục chủ đề và số câu
+    setTimeout(() => {
+      if (saved.chuDe) {
+        saved.chuDe.forEach(({ chuDe, soCau }) => {
+          const chk = [...document.querySelectorAll(".chu-de-checkbox")].find(
+            (c) => c.value === chuDe
+          );
+          if (chk) {
+            chk.checked = true;
+            const input =
+              chk.parentElement.parentElement.querySelector(".so-cau-input");
+            if (input) input.value = soCau;
+          }
+        });
+      }
+    }, 100);
   });
 
   ["ngonNgu", "monHoc", "loai"].forEach((id) => {
@@ -142,11 +172,23 @@ document.addEventListener("DOMContentLoaded", async () => {
       .addEventListener("change", renderChuDeTheoBoLoc);
   });
 
+  // Khôi phục loại bài tập và thứ tự nếu có
+  if (saved.loaiBaiTapList) {
+    saved.loaiBaiTapList.forEach((val) => {
+      const el = document.querySelector(
+        `#loaiBaiTapContainer input[value="${val}"]`
+      );
+      if (el) el.checked = true;
+    });
+  }
+  if (saved.thuTu) document.getElementById("thuTu").value = saved.thuTu;
+
   document.getElementById("batDauBtn").addEventListener("click", () => {
     const monHoc = document.getElementById("monHoc").value;
     const loai = document.getElementById("loai").value;
     const language = document.getElementById("ngonNgu").value;
     const thuTu = document.getElementById("thuTu").value;
+    const danhSach = document.getElementById("danhSach").value;
 
     const loaiBaiTapEls = document.querySelectorAll(
       "#loaiBaiTapContainer input:checked"
@@ -166,6 +208,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     }
 
     const savedSettings = {
+      danhSach,
       monHoc,
       loai,
       language,
@@ -234,4 +277,14 @@ document.addEventListener("DOMContentLoaded", async () => {
       window.location.href = "index.html";
     }
   });
+});
+document.getElementById("resetSettingsBtn").addEventListener("click", () => {
+  if (confirm("Bạn có chắc muốn xoá toàn bộ thiết lập cũ không?")) {
+    localStorage.removeItem("quizSettings");
+    localStorage.removeItem("selectedQuestions");
+    localStorage.removeItem("loaiBaiTapList");
+    localStorage.removeItem("currentLoaiBaiTapIndex");
+    alert("✅ Đã xoá thiết lập. Trang sẽ được tải lại.");
+    location.reload();
+  }
 });
