@@ -32,8 +32,132 @@ function shuffle(arr) {
 
 function renderStep() {
   container.innerHTML = "";
-  if (step === 0) renderFillBlankStep();
-  else renderMemorizeStep();
+  if (step === 0) renderMemorizeStep();
+  else renderFillBlankStep();
+}
+
+function renderMemorizeStep() {
+  const q = questions[currentIndex];
+  if (
+    !accumulatedMatched.length ||
+    accumulatedMatched.length !== splitWords(q.dapAn, q.language).length
+  ) {
+    accumulatedMatched = new Array(splitWords(q.dapAn, q.language).length).fill(
+      ""
+    );
+  }
+  readLimit = 3;
+  let hidden = false;
+
+  container.innerHTML = `
+    <h2>📖 Đọc thuộc lòng</h2>
+    <p id="sentence" style="font-size:20px;line-height:1.6;white-space:pre-line">${q.dapAn.replace(
+      /\|/g,
+      "\n"
+    )}</p>
+
+    <button id="readBtn">🔊 Đọc lại (${readLimit} lần)</button>
+    <button id="hideBtn">🙈 Ẩn câu để bắt đầu kiểm tra</button>
+    <button id="speakBtn" style="display:none">🎙️ Bắt đầu nói</button>
+    <div id="micStatus"></div>
+    <div id="result"></div>
+  `;
+  renderQuestionImage(q.tenAnh, container);
+
+  document.getElementById("readBtn").onclick = () => {
+    if (readLimit > 0) {
+      speak(q.dapAn, q.language);
+      readLimit--;
+      document.getElementById(
+        "readBtn"
+      ).textContent = `🔊 Đọc lại (${readLimit} lần)`;
+    }
+  };
+
+  document.getElementById("hideBtn").onclick = () => {
+    hidden = true;
+    document.getElementById("sentence").textContent =
+      "🙈 Câu đã được ẩn, hãy đọc lại!";
+    document.getElementById("hideBtn").style.display = "none";
+    document.getElementById("speakBtn").style.display = "inline-block";
+  };
+
+  document.getElementById("speakBtn").onclick = () => {
+    const SpeechRecognition =
+      window.SpeechRecognition || window.webkitSpeechRecognition;
+    if (!SpeechRecognition) {
+      alert("⚠️ Trình duyệt không hỗ trợ ghi âm!");
+      return;
+    }
+
+    if (!recognition) {
+      recognition = new SpeechRecognition();
+      recognition.lang = langToLocale(q.language);
+      recognition.interimResults = true;
+    }
+
+    if (!isListening) {
+      finalTranscript = "";
+      isListening = true;
+      recognition.start();
+      document.getElementById("micStatus").textContent = "🎙️ Đang nghe...";
+      speakBtn.textContent = "⏳ Đang ghi...";
+
+      recognition.onresult = (event) => {
+        const r = event.results[event.results.length - 1];
+        if (r.isFinal) finalTranscript = r[0].transcript.trim();
+      };
+
+      recognition.onerror = (e) => {
+        document.getElementById("micStatus").textContent =
+          "❌ Lỗi ghi âm: " + e.error;
+        isListening = false;
+        speakBtn.textContent = "🎙️ Bắt đầu nói";
+      };
+    } else {
+      recognition.stop();
+      isListening = false;
+      speakBtn.textContent = "🎙️ Bắt đầu nói";
+      document.getElementById("micStatus").textContent = "";
+
+      setTimeout(() => {
+        if (finalTranscript.trim()) {
+          const result = compareWords(
+            finalTranscript,
+            q.dapAn,
+            q.language,
+            accumulatedMatched
+          );
+          accumulatedMatched = result.accumulatedArray;
+
+          const accumulatedLine = result.accumulated
+            ? `<p><strong>Đáp án tích lũy:</strong> ${result.accumulated}</p>`
+            : "";
+
+          document.getElementById("result").innerHTML = `
+            <p><strong>Bạn nói:</strong> "${finalTranscript}"</p>
+            <p><strong>Đáp án:</strong> ${result.revealed}</p>
+            <p><strong>💯 Độ khớp:</strong> ${result.percent}%</p>
+            ${accumulatedLine}
+          `;
+
+          if (result.percent >= 70) {
+            const nextBtn = document.createElement("button");
+            nextBtn.textContent = "✅ Tiếp tục điền từ vào chỗ trống";
+            nextBtn.style.marginTop = "20px";
+            nextBtn.onclick = () => {
+              step++;
+              renderStep();
+            };
+            container.appendChild(nextBtn);
+          }
+        } else {
+          document.getElementById("micStatus").textContent =
+            "⚠️ Không nhận được nội dung nào!";
+        }
+      }, 300);
+    }
+  };
 }
 
 function renderFillBlankStep() {
@@ -154,11 +278,17 @@ function renderFillBlankStep() {
       if (remaining.length === 0 && !document.getElementById("nextBtn")) {
         const btn = document.createElement("button");
         btn.id = "nextBtn";
-        btn.textContent = "✅ Tiếp tục luyện dịch";
+        btn.textContent = "➡️ Chuyển sang câu tiếp theo";
         btn.style.marginTop = "20px";
         btn.onclick = () => {
-          step++;
-          renderStep();
+          currentIndex++;
+          step = 0;
+          if (currentIndex < questions.length) {
+            renderStep();
+          } else {
+            container.innerHTML = `<h2>✅ Bạn đã hoàn thành bài học thuộc lòng!</h2>`;
+            taoNutBaiTiepTheo(container);
+          }
         };
         container.appendChild(btn);
       }
@@ -166,136 +296,6 @@ function renderFillBlankStep() {
   });
 
   updateRevealAnswer(); // Gọi lần đầu
-}
-
-function renderMemorizeStep() {
-  const q = questions[currentIndex];
-  if (
-    !accumulatedMatched.length ||
-    accumulatedMatched.length !== splitWords(q.dapAn, q.language).length
-  ) {
-    accumulatedMatched = new Array(splitWords(q.dapAn, q.language).length).fill(
-      ""
-    );
-  }
-  readLimit = 3;
-  let hidden = false;
-
-  container.innerHTML = `
-    <h2>📖 Luyện dịch</h2>
-    <p id="sentence" style="font-size:20px;line-height:1.6;white-space:pre-line">${q.dapAn.replace(
-      /\|/g,
-      "\n"
-    )}</p>
-
-    <button id="readBtn">🔊 Đọc lại (${readLimit} lần)</button>
-    <button id="hideBtn">🙈 Ẩn câu để bắt đầu kiểm tra</button>
-    <button id="speakBtn" style="display:none">🎙️ Bắt đầu nói</button>
-    <div id="micStatus"></div>
-    <div id="result"></div>
-  `;
-  renderQuestionImage(q.tenAnh, container);
-
-  document.getElementById("readBtn").onclick = () => {
-    if (readLimit > 0) {
-      speak(q.dapAn, q.language);
-      readLimit--;
-      document.getElementById(
-        "readBtn"
-      ).textContent = `🔊 Đọc lại (${readLimit} lần)`;
-    }
-  };
-
-  document.getElementById("hideBtn").onclick = () => {
-    hidden = true;
-    document.getElementById("sentence").textContent =
-      "🙈 Câu đã được ẩn, hãy đọc lại!";
-    document.getElementById("hideBtn").style.display = "none";
-    document.getElementById("speakBtn").style.display = "inline-block";
-  };
-
-  document.getElementById("speakBtn").onclick = () => {
-    const SpeechRecognition =
-      window.SpeechRecognition || window.webkitSpeechRecognition;
-    if (!SpeechRecognition) {
-      alert("⚠️ Trình duyệt không hỗ trợ ghi âm!");
-      return;
-    }
-
-    if (!recognition) {
-      recognition = new SpeechRecognition();
-      recognition.lang = langToLocale(q.language);
-      recognition.interimResults = true;
-    }
-
-    if (!isListening) {
-      finalTranscript = "";
-      isListening = true;
-      recognition.start();
-      document.getElementById("micStatus").textContent = "🎙️ Đang nghe...";
-      speakBtn.textContent = "⏳ Đang ghi...";
-
-      recognition.onresult = (event) => {
-        const r = event.results[event.results.length - 1];
-        if (r.isFinal) finalTranscript = r[0].transcript.trim();
-      };
-
-      recognition.onerror = (e) => {
-        document.getElementById("micStatus").textContent =
-          "❌ Lỗi ghi âm: " + e.error;
-        isListening = false;
-        speakBtn.textContent = "🎙️ Bắt đầu nói";
-      };
-    } else {
-      recognition.stop();
-      isListening = false;
-      speakBtn.textContent = "🎙️ Bắt đầu nói";
-      document.getElementById("micStatus").textContent = "";
-
-      setTimeout(() => {
-        if (finalTranscript.trim()) {
-          const result = compareWords(
-            finalTranscript,
-            q.dapAn,
-            q.language,
-            accumulatedMatched
-          );
-          accumulatedMatched = result.accumulatedArray;
-
-          const accumulatedLine = result.accumulated
-            ? `<p><strong>Đáp án tích lũy:</strong> ${result.accumulated}</p>`
-            : "";
-
-          document.getElementById("result").innerHTML = `
-            <p><strong>Bạn nói:</strong> "${finalTranscript}"</p>
-            <p><strong>Đáp án:</strong> ${result.revealed}</p>
-            <p><strong>💯 Độ khớp:</strong> ${result.percent}%</p>
-            ${accumulatedLine}
-          `;
-
-          if (result.percent >= 70) {
-            const nextBtn = document.createElement("button");
-            nextBtn.textContent = "✅ Tiếp tục câu tiếp theo";
-            nextBtn.style.marginTop = "20px";
-            nextBtn.onclick = () => {
-              currentIndex++;
-              step = 0;
-              if (currentIndex < questions.length) {
-                renderStep();
-              } else {
-                container.innerHTML = `<h2>✅ Bạn đã hoàn thành bài học thuộc lòng!</h2>`;
-                taoNutBaiTiepTheo(container);
-              }
-            };
-            container.appendChild(nextBtn);
-          }
-        } else {
-          document.getElementById("micStatus").textContent =
-            "⚠️ Không nhận được nội dung nào!";
-        }
-      }, 300);
-    }
-  };
 }
 
 renderStep();
