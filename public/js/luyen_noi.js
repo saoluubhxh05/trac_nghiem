@@ -31,14 +31,29 @@ function startSpeechRecognition(onResult) {
   }
   recognition = new SpeechRecognition();
   recognition.lang = "en-US";
-  recognition.interimResults = true;
+  recognition.interimResults = true; // Cập nhật theo thời gian thực
+  recognition.continuous = true; // Ghi âm liên tục cho đến khi stop
   recognition.onresult = (event) => {
     const transcript = Array.from(event.results)
       .map((r) => r[0].transcript)
       .join(" ");
-    onResult(transcript);
+    onResult(transcript); // Cập nhật transcript theo thời gian thực
+    finalTranscript = transcript; // Lưu transcript cuối cùng
+    console.log("Ghi âm: ", transcript); // Debug
   };
-  recognition.onerror = () => alert("❌ Lỗi nhận diện giọng nói.");
+  recognition.onerror = (event) => {
+    console.error("Lỗi ghi âm: ", event.error);
+    alert(`❌ Lỗi nhận diện giọng nói: ${event.error}`);
+    isListening = false;
+    if (recognition) recognition.stop();
+    speakBtn.textContent = "🎙️ Bắt đầu nói";
+  };
+  recognition.onend = () => {
+    if (isListening) {
+      console.warn("Ghi âm tự động dừng, thử lại...");
+      recognition.start(); // Tự động khởi động lại nếu mic ngắt
+    }
+  };
 }
 
 function renderQuestion(q, index) {
@@ -84,44 +99,50 @@ function renderQuestion(q, index) {
   controls.appendChild(nextBtn);
   block.appendChild(controls);
 
+  let isProcessed = false; // Đảm bảo chỉ xử lý một lần sau khi dừng
+
   speakBtn.onclick = () => {
     if (!isListening) {
       // Bắt đầu ghi âm
       startSpeechRecognition((transcript) => {
         spoken.innerHTML = `<strong>Bạn nói:</strong> ${transcript}`;
-        finalTranscript = transcript;
       });
       recognition.start();
       isListening = true;
       speakBtn.textContent = "⏳ Đang ghi...";
+      isProcessed = false; // Reset khi bắt đầu mới
     } else {
       // Dừng ghi âm và xử lý
-      recognition.stop();
+      if (recognition && isListening) {
+        recognition.stop();
+      }
       isListening = false;
       speakBtn.textContent = "🎙️ Bắt đầu nói";
 
-      const result = compareWords(
-        finalTranscript,
-        q.dapAn,
-        "en",
-        accumulatedMatched
-      );
-      accumulatedMatched = result.accumulatedArray;
-      match.innerHTML = `
-        <p><strong>Đáp án mẫu:</strong> ${q.dapAn}</p>
-        <p><strong>💯 Độ khớp:</strong> ${result.percent}% (Grammar/Vocab: ${
-        result.percent > 70 ? "Tốt" : "Cần cải thiện"
-      }, Pronunciation: Clear, Fluency: ${
-        finalTranscript.length > 50 ? "Tốt" : "Ngắn"
-      })</p>
-      `;
-      if (result.percent >= 70) {
-        nextBtn.disabled = false;
-      } else {
-        // Lưu redo nếu thấp
-        let mustRedo = JSON.parse(localStorage.getItem("mustRedo") || "[]");
-        mustRedo.push(q);
-        localStorage.setItem("mustRedo", JSON.stringify(mustRedo));
+      if (!isProcessed) {
+        const result = compareWords(
+          finalTranscript,
+          q.dapAn,
+          "en",
+          accumulatedMatched
+        );
+        accumulatedMatched = result.accumulatedArray;
+        match.innerHTML = `
+          <p><strong>Đáp án mẫu:</strong> ${q.dapAn}</p>
+          <p><strong>💯 Độ khớp:</strong> ${result.percent}% (Grammar/Vocab: ${
+          result.percent > 70 ? "Tốt" : "Cần cải thiện"
+        }, Pronunciation: Clear, Fluency: ${
+          finalTranscript.length > 50 ? "Tốt" : "Ngắn"
+        })</p>
+        `;
+        if (result.percent >= 70) {
+          nextBtn.disabled = false;
+        } else {
+          let mustRedo = JSON.parse(localStorage.getItem("mustRedo") || "[]");
+          mustRedo.push(q);
+          localStorage.setItem("mustRedo", JSON.stringify(mustRedo));
+        }
+        isProcessed = true; // Đánh dấu đã xử lý
       }
     }
   };
