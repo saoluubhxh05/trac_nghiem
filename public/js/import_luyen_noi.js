@@ -52,8 +52,8 @@ document
             monHoc: "Tiếng Anh",
             loai: "Luyện nói",
             chuDe: row["Chủ đề"] || "Unknown",
-            cauHoi: row["Câu hỏi"] || "",
-            dapAn: row["Đáp án"] || "",
+            cauHoi: row["Câu trắc nghiệm"] || "",
+            dapAn: row["Đáp án đúng"] || "",
             dichDapAn: row["Dịch đáp án"] || "",
             language: "en",
           }))
