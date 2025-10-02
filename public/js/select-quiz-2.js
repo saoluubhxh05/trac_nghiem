@@ -267,17 +267,19 @@ document.addEventListener("DOMContentLoaded", async () => {
     );
 
     if (loaiBaiTapList.length === 1 && loaiBaiTapList[0] === "translate") {
-      window.location.href =
-        language === "zh" ? "translate-zh.html" : "translate-en.html";
+      window.location.href = language === "zh" ? "translate-zh.html" : "translate-en.html";
     } else if (loaiBaiTapList.includes("combo")) {
       window.location.href = "combo.html";
     } else if (loaiBaiTapList.includes("memorize")) {
       window.location.href = "memorize.html";
+    } else if (loaiBaiTapList.includes("luyennoi")) {
+      window.location.href = "luyen_noi.html"; // Thêm redirect cho Luyện nói
     } else {
       window.location.href = "index.html";
     }
   });
 });
+
 document.getElementById("resetSettingsBtn").addEventListener("click", () => {
   if (confirm("Bạn có chắc muốn xoá toàn bộ thiết lập cũ không?")) {
     localStorage.removeItem("quizSettings");
