@@ -67,6 +67,7 @@ popupImport.addEventListener("click", async () => {
       cauHoi:
         row["Câu trắc nghiệm"] || row["Dịch sang tiếng Việt Câu hỏi"] || "",
       dapAn: row["Đáp án đúng"] || "",
+      dichDapAn: row["Dịch đáp án"] || "", // Thêm cột mới: Dịch nghĩa đáp án (e.g., tiếng Việt)
       phuongAn1:
         row["Phương án 1"] || row["Các phương án"]?.split("#")[0] || "",
       phuongAn2:
