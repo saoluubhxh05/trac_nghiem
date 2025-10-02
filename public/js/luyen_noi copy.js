@@ -18,9 +18,9 @@ const container = document.getElementById("luyenNoiContainer");
 let currentIndex = 0;
 let part = 1; // Part 1 hoặc 2 của KET
 let recognition;
-let isListening = false;
-let finalTranscript = "";
+let timerInterval;
 let accumulatedMatched = [];
+const defaultTime = 60; // 1 phút cho mỗi phần, giống KET
 
 function startSpeechRecognition(onResult) {
   const SpeechRecognition =
@@ -39,6 +39,7 @@ function startSpeechRecognition(onResult) {
     onResult(transcript);
   };
   recognition.onerror = () => alert("❌ Lỗi nhận diện giọng nói.");
+  recognition.start();
 }
 
 function renderQuestion(q, index) {
@@ -62,6 +63,11 @@ function renderQuestion(q, index) {
 
   renderQuestionImage(q.tenAnh, block); // Nếu có hình cho Part 2
 
+  const timer = document.createElement("div");
+  timer.id = `timer-${index}`;
+  timer.textContent = `⏱️ ${defaultTime}s`;
+  block.appendChild(timer);
+
   const spoken = document.createElement("div");
   spoken.innerHTML = `<strong>Bạn nói:</strong> `;
   block.appendChild(spoken);
@@ -84,21 +90,32 @@ function renderQuestion(q, index) {
   controls.appendChild(nextBtn);
   block.appendChild(controls);
 
+  let secondsLeft = defaultTime;
+  let isListening = false;
+  let finalTranscript = "";
+
+  function startTimer() {
+    timerInterval = setInterval(() => {
+      secondsLeft--;
+      timer.textContent = `⏱️ ${secondsLeft}s`;
+      if (secondsLeft <= 0) clearInterval(timerInterval);
+    }, 1000);
+  }
+
   speakBtn.onclick = () => {
     if (!isListening) {
-      // Bắt đầu ghi âm
+      isListening = true;
+      speakBtn.textContent = "⏳ Đang ghi...";
       startSpeechRecognition((transcript) => {
         spoken.innerHTML = `<strong>Bạn nói:</strong> ${transcript}`;
         finalTranscript = transcript;
       });
-      recognition.start();
-      isListening = true;
-      speakBtn.textContent = "⏳ Đang ghi...";
+      startTimer();
     } else {
-      // Dừng ghi âm và xử lý
       recognition.stop();
       isListening = false;
       speakBtn.textContent = "🎙️ Bắt đầu nói";
+      clearInterval(timerInterval);
 
       const result = compareWords(
         finalTranscript,
