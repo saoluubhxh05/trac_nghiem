@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="vi">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Import Luyện Nói Tiếng Anh</title>
+    <link rel="stylesheet" href="style.css" />
+    <script type="module" src="header.js"></script>
+    <script type="module" src="import_luyen_noi.js"></script>
+  </head>
+  <body>
+    <h1>📥 Import Luyện Nói Tiếng Anh</h1>
+    <div id="popupOverlay" style="display: none"></div>
+    <!-- Nếu dùng popup -->
+    <input type="file" id="popupFile" accept=".xlsx" />
+    <button id="popupImport">Import</button>
+    <h2>Danh sách đã import</h2>
+    <table>
+      <thead>
+        <tr>
+          <th>Tên</th>
+          <th>Hành động</th>
+        </tr>
+      </thead>
+      <tbody id="selectionList"></tbody>
+    </table>
+    <h2>Preview</h2>
+    <table>
+      <thead>
+        <tr>
+          <th>STT</th>
+          <th>Môn học</th>
+          <th>Loại</th>
+          <th>Chủ đề</th>
+          <th>Câu hỏi</th>
+          <th>Đáp án</th>
+        </tr>
+      </thead>
+      <tbody id="previewBody"></tbody>
+    </table>
+  </body>
+</html>
