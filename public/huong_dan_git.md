@@ -59,6 +59,11 @@ trac_nghiem3/
 //Thêm toàn bộ file vừa chỉnh sửa //Ghi chú cập nhật vào lịch sử //Gửi toàn bộ thay đổi lên GitHub
 
 git add .
+git commit -m "Force update select-quiz-2.js"
+git push origin main # Không dùng --force nữa, tránh overwrite
+firebase deploy --only hosting --debug # --debug để log chi tiết
+
+git add .
 git commit -m "Cập nhật"
 git push --force
 firebase deploy
