@@ -269,6 +269,8 @@ document.addEventListener("DOMContentLoaded", async () => {
     if (loaiBaiTapList.length === 1 && loaiBaiTapList[0] === "translate") {
       window.location.href =
         language === "zh" ? "translate-zh.html" : "translate-en.html";
+    } else if (loaiBaiTapList.includes("luyennoi")) {
+      window.location.href = "luyen_noi.html";
     } else if (loaiBaiTapList.includes("combo")) {
       window.location.href = "combo.html";
     } else if (loaiBaiTapList.includes("memorize")) {
