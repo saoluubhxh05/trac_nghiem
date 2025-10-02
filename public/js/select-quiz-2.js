@@ -197,7 +197,7 @@ document.addEventListener("DOMContentLoaded", () => {
     .getElementById("ngonNgu")
     .addEventListener("change", renderChuDeTheoBoLoc);
 
-  document.getElementById("batDauBtn").addEventListener("click", () => {
+  document.getElementById("batdaulambai").addEventListener("click", () => {
     const monHoc = document.getElementById("monHoc").value;
     const loai = document.getElementById("loai").value;
     const language = document.getElementById("ngonNgu").value;
