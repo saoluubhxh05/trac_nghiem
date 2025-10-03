@@ -3,6 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
     <title>Luyện nói tiếng Anh</title>
     <link rel="stylesheet" href="css/style.css" />
     <style>
@@ -18,40 +19,12 @@
         font-style: italic;
         color: gray;
       }
-      #hintToggle {
-        margin-bottom: 10px;
-        padding: 5px 10px;
-        background: #f0f0f0;
-        border: none;
-        border-radius: 4px;
-        cursor: pointer;
-      }
-      #hotkeys {
-        position: fixed;
-        bottom: 10px;
-        left: 10px;
-        right: 10px;
-        background: rgba(0,0,0,0.8);
-        color: white;
-        padding: 10px;
-        border-radius: 8px;
-        font-size: 12px;
-        display: flex;
-        justify-content: space-around;
-        opacity: 0.9;
-      }
-      @media (max-width: 480px) {
-        #hotkeys { display: none; }  /* Ẩn hotkeys trên mobile */
-      }
     </style>
   </head>
   <body>
     <h1>🎤 Luyện nói tiếng Anh</h1>
 
     <div id="questionContainer"></div>
-    <!-- Thêm: Nút toggle hint (giữ nguyên vị trí) -->
-    <button id="hintToggle">👁️ Ẩn gợi ý</button>
-
     <button id="speakBtn">🎙️ Bắt đầu nói</button>
     <p id="micStatus"></p>
 
@@ -62,19 +35,8 @@
     <button id="nextBtn" style="display: none; margin-top: 20px">
       ➡️ Câu tiếp theo
     </button>
-
-    <!-- Thêm: Footer hotkeys -->
-    <div id="hotkeys">
-      <span>Space: Ghi âm</span>
-      <span>R: Đọc lại</span>
-      <span>N: Tiếp theo</span>
-      <span>H: Gợi ý</span>
-    </div>
-
-    <!-- Load header.js cho auth và navigation -->
+    <!-- Thêm: Load header.js cho auth và navigation -->
     <script type="module" src="js/header.js"></script>
-
-    <!-- Script gốc -->
     <script type="module" src="js/speaking.js"></script>
 
     <script type="module">
