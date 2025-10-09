@@ -120,32 +120,23 @@
           </label>
           <!-- Trong <div class="checkbox-group" id="loaiBaiTapContainer"> -->
           <!-- Trong <div class="checkbox-group" id="loaiBaiTapContainer"> -->
+          <!-- Trong <div class="checkbox-group" id="loaiBaiTapContainer"> (thêm sau các checkbox khác) -->
           <label>
             <input type="checkbox" value="hoctuvung" id="hoctuvungCheckbox" />
             Học từ vựng </label
           ><br />
-          <div id="hoctuvungOptions" style="display: none; margin-left: 20px">
+
+          <!-- Phần sub-mode (ẩn ban đầu, JS show khi checkbox checked) -->
+          <div id="hoctuvungMode" style="display: none; margin-left: 20px">
             <label>
-              <input type="radio" name="hoctuvungMode" value="new" checked />
-              Học mới </label
-            ><br />
+              <input type="radio" name="tuvungMode" value="hocmoi" checked />
+              Học mới
+            </label>
             <label>
-              <input type="radio" name="hoctuvungMode" value="review" /> Ôn lại
+              <input type="radio" name="tuvungMode" value="onlai" /> Ôn lại
             </label>
           </div>
-          <!-- Các checkbox khác giữ nguyên -->
 
-          <!-- Thêm script inline để toggle options -->
-          <script>
-            document
-              .getElementById("hoctuvungCheckbox")
-              .addEventListener("change", (e) => {
-                document.getElementById("hoctuvungOptions").style.display = e
-                  .target.checked
-                  ? "block"
-                  : "none";
-              });
-          </script>
           <label>
             <input type="checkbox" value="luyennoi" /> Luyện nói tiếng Anh
           </label>

@@ -1,155 +1,167 @@
 import { speak } from "./speech-util.js";
-import {
-  langToLocale,
-  normalize,
-  splitWords,
-  compareWords,
-} from "./lang-util.js";
 import { taoNutBaiTiepTheo } from "./navigation.js";
 
-const questions = JSON.parse(localStorage.getItem("selectedQuestions") || "[]");
-const mode = localStorage.getItem("hoctuvungMode") || "new";
-if (!questions.length) {
-  alert("Không có dữ liệu. Vui lòng chọn bài trước.");
-  window.location.href = "select-quiz-2.html";
-}
-
-const container = document.getElementById("hoctuvungContainer");
-const completeBtn = document.getElementById("completeBtn");
-let vocabList = []; // List từ vựng/dịch tổng hợp từ questions
-let progress = {}; // {word: percent} theo dõi >=50%
-
-// Extract vocab từ questions
-questions.forEach((q) => {
-  if (q.tuVung && q.dichTuVung && q.tuVung.length === q.dichTuVung.length) {
-    q.tuVung.forEach((word, i) => {
-      vocabList.push({ word: word.trim(), dich: q.dichTuVung[i].trim() });
-      progress[word] = 0; // Init progress
-    });
+document.addEventListener("DOMContentLoaded", () => {
+  const questions = JSON.parse(
+    localStorage.getItem("selectedQuestions") || "[]"
+  );
+  const mode = localStorage.getItem("tuvungMode") || "hocmoi";
+  if (!questions.length) {
+    alert("Không có dữ liệu từ vựng. Vui lòng chọn bài trước.");
+    window.location.href = "select-quiz-2.html";
+    return;
   }
-});
-vocabList = [...new Set(vocabList.map((v) => v.word))].map((w) =>
-  vocabList.find((v) => v.word === w)
-); // Unique words
 
-if (!vocabList.length) {
-  container.innerHTML = "<p>Không có từ vựng để học.</p>";
-} else {
-  renderVocab();
-}
+  const container = document.getElementById("hoctuvungContainer");
+  const nextBtn = document.getElementById("nextBtn");
+  let recognition;
+  let isListening = false;
+  let allWords = []; // Flatten từ vựng từ questions
+  let wordResults = {}; // Lưu % khớp mỗi từ
 
-function renderVocab() {
-  container.innerHTML = `<h2>Chế độ: ${
-    mode === "new" ? "Học mới" : "Ôn lại"
-  }</h2>`;
-  vocabList.forEach((v, index) => {
-    const item = document.createElement("div");
-    item.className = "word-item";
-    const hint = document.createElement("div");
-    hint.className = "word-hint";
-    const resultDiv = document.createElement("div");
-    resultDiv.className = "word-result";
-
-    if (mode === "new") {
-      // Học mới: Từ + Nút đọc + Dịch + Nút lặp lại
-      hint.innerHTML = `Từ: ${v.word} - Dịch: ${v.dich}`;
-      const readBtn = document.createElement("button");
-      readBtn.textContent = "🔊 Đọc";
-      readBtn.onclick = () => speak(v.word, "en-US");
-      const repeatBtn = document.createElement("button");
-      repeatBtn.textContent = "🎙️ Lặp lại";
-      repeatBtn.onclick = () => toggleRepeat(v.word, resultDiv, index);
-      item.appendChild(hint);
-      item.appendChild(readBtn);
-      item.appendChild(repeatBtn);
-      item.appendChild(resultDiv);
-    } else {
-      // Ôn lại: Nghĩa TV + Từ blank với 3 chữ random
-      hint.innerHTML = `Nghĩa: ${v.dich}`;
-      const blankWord = createBlankWord(v.word);
-      item.appendChild(hint);
-      item.innerHTML += blankWord;
-      const checkBtn = document.createElement("button");
-      checkBtn.textContent = "Kiểm tra";
-      checkBtn.onclick = () => checkReview(v.word, item, resultDiv, index);
-      item.appendChild(checkBtn);
-      item.appendChild(resultDiv);
+  // Flatten từ vựng từ questions (1-6)
+  questions.forEach((q) => {
+    for (let i = 1; i <= 6; i++) {
+      const tuVung = q[`tuVung${i}`];
+      const dichTuVung = q[`dichTuVung${i}`];
+      if (tuVung) {
+        allWords.push({ tuVung, dichTuVung });
+        wordResults[tuVung] = 0; // Init 0%
+      }
     }
-    container.appendChild(item);
   });
-  updateProgress();
-}
 
-function toggleRepeat(word, resultDiv, index) {
-  if (!recognition) {
-    recognition = new (window.SpeechRecognition ||
-      window.webkitSpeechRecognition)();
+  if (!allWords.length) {
+    container.innerHTML = "<p>Không có từ vựng trong dữ liệu chọn.</p>";
+    return;
+  }
+
+  function normalize(str) {
+    return str
+      .toLowerCase()
+      .replace(/[\u2018\u2019]/g, "'")
+      .replace(/[^a-z0-9'\s]/g, "")
+      .replace(/\s+/g, " ")
+      .trim();
+  }
+
+  function checkCompletion() {
+    const allPassed = allWords.every((w) => wordResults[w.tuVung] >= 50);
+    nextBtn.style.display = allPassed ? "block" : "none";
+  }
+
+  function startRecognition(onResult) {
+    const SpeechRecognition =
+      window.SpeechRecognition || window.webkitSpeechRecognition;
+    if (!SpeechRecognition) {
+      alert("⚠️ Trình duyệt không hỗ trợ nhận diện giọng nói!");
+      return;
+    }
+    recognition = new SpeechRecognition();
     recognition.lang = "en-US";
     recognition.interimResults = true;
     recognition.continuous = true;
     recognition.onresult = (event) => {
       const transcript = Array.from(event.results)
         .map((r) => r[0].transcript)
-        .join(" ")
-        .trim();
-      resultDiv.textContent = `Bạn nói: ${transcript}`;
+        .join(" ");
+      onResult(transcript);
     };
-    recognition.onend = () => {
-      const result = compareWords(finalTranscript, word, "en", []);
-      progress[word] = result.percent;
-      resultDiv.textContent += ` - Độ khớp: ${result.percent}%`;
-      updateProgress();
-    };
+    recognition.onerror = () => alert("❌ Lỗi nhận diện giọng nói.");
   }
-  if (isListening) {
-    recognition.stop();
-    isListening = false;
+
+  function renderHocMoi() {
+    container.innerHTML = "<h2>Học Mới</h2>";
+    allWords.forEach((w) => {
+      const block = document.createElement("div");
+      block.className = "word-block";
+      block.innerHTML = `
+        <strong>Từ: ${w.tuVung}</strong> - Dịch: ${w.dichTuVung}
+        <button class="docBtn">🔊 Đọc</button>
+        <button class="laplaiBtn">🎙️ Lặp lại</button>
+        <div class="result"></div>
+      `;
+      const docBtn = block.querySelector(".docBtn");
+      docBtn.onclick = () => speak(w.tuVung);
+
+      const laplaiBtn = block.querySelector(".laplaiBtn");
+      const resultDiv = block.querySelector(".result");
+      laplaiBtn.onclick = () => {
+        if (!isListening) {
+          startRecognition((transcript) => {
+            resultDiv.innerHTML = `Bạn nói: ${transcript}`;
+          });
+          recognition.start();
+          isListening = true;
+          laplaiBtn.textContent = "⏳ Đang ghi...";
+        } else {
+          recognition.stop();
+          isListening = false;
+          laplaiBtn.textContent = "🎙️ Lặp lại";
+          const percent =
+            normalize(finalTranscript) === normalize(w.tuVung) ? 100 : 0; // So sánh đơn giản cho từ đơn
+          wordResults[w.tuVung] = percent;
+          resultDiv.innerHTML += ` 💯 Độ khớp: ${percent}%`;
+          checkCompletion();
+        }
+      };
+
+      container.appendChild(block);
+    });
+  }
+
+  function renderOnLai() {
+    container.innerHTML = "<h2>Ôn Lại</h2>";
+    allWords.forEach((w) => {
+      const block = document.createElement("div");
+      block.className = "word-block";
+      // Hint 3 chữ ngẫu nhiên
+      const letters = w.tuVung.split("");
+      const randomIndices = [...Array(letters.length).keys()]
+        .sort(() => 0.5 - Math.random())
+        .slice(0, 3);
+      const hintWord = letters
+        .map((l, i) => (randomIndices.includes(i) ? l : "_"))
+        .join("");
+      block.innerHTML = `
+        <strong>Dịch: ${w.dichTuVung}</strong> - Từ: ${hintWord}
+        <button class="onlaiBtn">🎙️ Nói để điền</button>
+        <div class="result"></div>
+      `;
+      const onlaiBtn = block.querySelector(".onlaiBtn");
+      const resultDiv = block.querySelector(".result");
+      onlaiBtn.onclick = () => {
+        if (!isListening) {
+          startRecognition((transcript) => {
+            resultDiv.innerHTML = `Bạn nói: ${transcript}`;
+          });
+          recognition.start();
+          isListening = true;
+          onlaiBtn.textContent = "⏳ Đang ghi...";
+        } else {
+          recognition.stop();
+          isListening = false;
+          onlaiBtn.textContent = "🎙️ Nói để điền";
+          const percent =
+            normalize(finalTranscript) === normalize(w.tuVung) ? 100 : 0;
+          wordResults[w.tuVung] = percent;
+          resultDiv.innerHTML += ` 💯 Độ khớp: ${percent}% (Từ đúng: ${w.tuVung})`;
+          checkCompletion();
+        }
+      };
+
+      container.appendChild(block);
+    });
+  }
+
+  if (mode === "hocmoi") {
+    renderHocMoi();
   } else {
-    finalTranscript = "";
-    recognition.start();
-    isListening = true;
-    resultDiv.textContent = "Đang ghi...";
+    renderOnLai();
   }
-}
 
-function createBlankWord(word) {
-  const letters = word.split("");
-  const randomIndices = [];
-  while (randomIndices.length < 3 && letters.length > 3) {
-    const idx = Math.floor(Math.random() * letters.length);
-    if (!randomIndices.includes(idx)) randomIndices.push(idx);
-  }
-  return (
-    letters.map((l, i) => (randomIndices.includes(i) ? l : "_")).join("") +
-    "<br>(Điền từ đầy đủ)"
-  );
-}
-
-function checkReview(word, item, resultDiv, index) {
-  const input = item.querySelector("input");
-  if (input && normalize(input.value) === normalize(word)) {
-    progress[word] = 100;
-    resultDiv.textContent = "Đúng! Từ: " + word;
-  } else {
-    progress[word] = 0;
-    resultDiv.textContent = "Sai. Thử lại.";
-  }
-  updateProgress();
-}
-
-function updateProgress() {
-  const done = Object.values(progress).every((p) => p >= 50);
-  const progressText = document.createElement("div");
-  progressText.id = "progress";
-  progressText.textContent = `Tiến độ: ${Math.round(
-    (Object.values(progress).reduce((a, b) => a + b, 0) /
-      (Object.keys(progress).length * 100)) *
-      100
-  )}%`;
-  container.appendChild(progressText);
-  completeBtn.style.display = done ? "block" : "none";
-  completeBtn.onclick = () => {
-    container.innerHTML = "<h2>🎉 Hoàn thành học từ vựng!</h2>";
+  nextBtn.onclick = () => {
+    container.innerHTML = `<h2>🎉 Hoàn thành học từ vựng!</h2>`;
     taoNutBaiTiepTheo(container);
   };
-}
+});

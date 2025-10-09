@@ -137,8 +137,19 @@ popupImport.addEventListener("click", async () => {
           rowObj["Phương án 4"] || rowObj["Các phương án"]?.split("#")[3] || "",
         tenAnh: rowObj["tenAnh"] || "",
         language: rowObj["Ngôn ngữ"] || "vi",
-        tuVung: tuVung,
-        dichTuVung: dichTuVung,
+        // Thêm mới: Cột Từ vựng 1-6 và Dịch từ vựng 1-6
+        tuVung1: row["Từ vựng 1"] || "",
+        dichTuVung1: row["Dịch từ vựng 1"] || "",
+        tuVung2: row["Từ vựng 2"] || "",
+        dichTuVung2: row["Dịch từ vựng 2"] || "",
+        tuVung3: row["Từ vựng 3"] || "",
+        dichTuVung3: row["Dịch từ vựng 3"] || "",
+        tuVung4: row["Từ vựng 4"] || "",
+        dichTuVung4: row["Dịch từ vựng 4"] || "",
+        tuVung5: row["Từ vựng 5"] || "",
+        dichTuVung5: row["Dịch từ vựng 5"] || "",
+        tuVung6: row["Từ vựng 6"] || "",
+        dichTuVung6: row["Dịch từ vựng 6"] || "",
       };
     });
 
