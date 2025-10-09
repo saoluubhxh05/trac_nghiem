@@ -59,55 +59,35 @@ popupImport.addEventListener("click", async () => {
     const partName = json[0]["Phần"].toString().trim();
     const collectionName = `selection_${partName.replace(/\s+/g, "_")}`;
 
-    const raw = json.map((row, index) => {
-      console.log("Row data:", row); // Debug: Kiểm tra toàn bộ row
-      const tuVungRaw = row["Từ vựng"] || row["tuvung"] || row["TỪ VỰNG"] || ""; // Linh hoạt header
-      const dichTuVungRaw =
-        row["Dịch từ vựng"] || row["dichtuvung"] || row["DỊCH TỪ VỰNG"] || ""; // Linh hoạt header
-
-      const tuVung = tuVungRaw
+    const raw = json.map((row, index) => ({
+      stt: index + 1,
+      monHoc: row["Môn học"] || "",
+      loai: row["Loại"] || "",
+      chuDe: row["Chủ đề"] || "",
+      cauHoi:
+        row["Câu trắc nghiệm"] || row["Dịch sang tiếng Việt Câu hỏi"] || "",
+      dapAn: row["Đáp án đúng"] || "",
+      dichDapAn: row["Dịch đáp án"] || "", // Thêm cột mới: Dịch nghĩa đáp án (e.g., tiếng Việt)
+      phuongAn1:
+        row["Phương án 1"] || row["Các phương án"]?.split("#")[0] || "",
+      phuongAn2:
+        row["Phương án 2"] || row["Các phương án"]?.split("#")[1] || "",
+      phuongAn3:
+        row["Phương án 3"] || row["Các phương án"]?.split("#")[2] || "",
+      phuongAn4:
+        row["Phương án 4"] || row["Các phương án"]?.split("#")[3] || "",
+      tenAnh: row["tenAnh"] || "",
+      language: row["Ngôn ngữ"] || "vi",
+      tuVung: (row["Từ vựng"] || "")
         .split(";")
         .map((t) => t.trim())
-        .filter((t) => t.length > 0);
-      const dichTuVung = dichTuVungRaw
+        .filter((t) => t), // Parse thành array từ vựng
+      dichTuVung: (row["Dịch từ vựng"] || "")
         .split(";")
         .map((d) => d.trim())
-        .filter((d) => d.length > 0);
-
-      if (
-        tuVung.length !== dichTuVung.length &&
-        (tuVung.length > 0 || dichTuVung.length > 0)
-      ) {
-        console.warn(
-          `Row ${index + 1}: Số lượng từ vựng (${
-            tuVung.length
-          }) không khớp với dịch (${dichTuVung.length})`
-        );
-      }
-
-      return {
-        stt: index + 1,
-        monHoc: row["Môn học"] || "",
-        loai: row["Loại"] || "",
-        chuDe: row["Chủ đề"] || "",
-        cauHoi:
-          row["Câu trắc nghiệm"] || row["Dịch sang tiếng Việt Câu hỏi"] || "",
-        dapAn: row["Đáp án đúng"] || "",
-        dichDapAn: row["Dịch đáp án"] || "",
-        phuongAn1:
-          row["Phương án 1"] || row["Các phương án"]?.split("#")[0] || "",
-        phuongAn2:
-          row["Phương án 2"] || row["Các phương án"]?.split("#")[1] || "",
-        phuongAn3:
-          row["Phương án 3"] || row["Các phương án"]?.split("#")[2] || "",
-        phuongAn4:
-          row["Phương án 4"] || row["Các phương án"]?.split("#")[3] || "",
-        tenAnh: row["tenAnh"] || "",
-        language: row["Ngôn ngữ"] || "vi",
-        tuVung: tuVung, // Dùng array đã parse
-        dichTuVung: dichTuVung, // Dùng array đã parse
-      };
-    });
+        .filter((d) => d), // Parse thành array dịch
+      // Các field khác giữ nguyên
+    }));
 
     const questions = raw.filter(
       (q) => q.monHoc && q.loai && q.chuDe && q.cauHoi && q.dapAn
@@ -116,7 +96,7 @@ popupImport.addEventListener("click", async () => {
     const colRef = collection(db, collectionName);
 
     try {
-      // Xóa toàn bộ nếu đã tồn tại
+      // 🔁 Xóa toàn bộ nếu đã tồn tại
       const existingDocs = await getDocs(colRef);
       if (!existingDocs.empty) {
         const confirmDelete = confirm(
@@ -129,10 +109,10 @@ popupImport.addEventListener("click", async () => {
         );
       }
 
-      // Import mới
+      // ✅ Import mới
       await Promise.all(questions.map((q) => addDoc(colRef, q)));
 
-      // Ghi metadata
+      // ✅ Ghi metadata
       const metaSnap = await getDocs(collection(db, "selectionMeta"));
       const existedMeta = metaSnap.docs.find(
         (d) => d.data().name === collectionName
@@ -208,12 +188,7 @@ async function previewSelection(colName) {
       <td>${q.loai}</td>
       <td>${q.chuDe}</td>
       <td>${q.cauHoi}</td>
-      <td>${q.dapAn}</td>
-      <td>${q.tuVung.join("; ")}</td>  <!-- Thêm cột từ vựng để preview -->
-      <td>${q.dichTuVung.join(
-        "; "
-      )}</td>  <!-- Thêm cột dịch từ vựng để preview -->
-    `;
+      <td>${q.dapAn}</td>`;
     previewBody.appendChild(r);
   });
 }
