@@ -269,6 +269,12 @@ document.addEventListener("DOMContentLoaded", async () => {
     if (loaiBaiTapList.length === 1 && loaiBaiTapList[0] === "translate") {
       window.location.href =
         language === "zh" ? "translate-zh.html" : "translate-en.html";
+    } else if (loaiBaiTapList.includes("hoctuvung")) {
+      const mode =
+        document.querySelector('input[name="hoctuvungMode"]:checked')?.value ||
+        "new";
+      localStorage.setItem("hoctuvungMode", mode);
+      window.location.href = "hoctuvung.html";
     } else if (loaiBaiTapList.includes("speaking")) {
       // Thêm mới: Điều hướng đến speaking.html
       window.location.href = "speaking.html";

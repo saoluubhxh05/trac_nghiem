@@ -78,6 +78,15 @@ popupImport.addEventListener("click", async () => {
         row["Phương án 4"] || row["Các phương án"]?.split("#")[3] || "",
       tenAnh: row["tenAnh"] || "",
       language: row["Ngôn ngữ"] || "vi",
+      tuVung: (row["Từ vựng"] || "")
+        .split(";")
+        .map((t) => t.trim())
+        .filter((t) => t), // Parse thành array từ vựng
+      dichTuVung: (row["Dịch từ vựng"] || "")
+        .split(";")
+        .map((d) => d.trim())
+        .filter((d) => d), // Parse thành array dịch
+      // Các field khác giữ nguyên
     }));
 
     const questions = raw.filter(

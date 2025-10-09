@@ -119,6 +119,33 @@
             giây
           </label>
           <!-- Trong <div class="checkbox-group" id="loaiBaiTapContainer"> -->
+          <!-- Trong <div class="checkbox-group" id="loaiBaiTapContainer"> -->
+          <label>
+            <input type="checkbox" value="hoctuvung" id="hoctuvungCheckbox" />
+            Học từ vựng </label
+          ><br />
+          <div id="hoctuvungOptions" style="display: none; margin-left: 20px">
+            <label>
+              <input type="radio" name="hoctuvungMode" value="new" checked />
+              Học mới </label
+            ><br />
+            <label>
+              <input type="radio" name="hoctuvungMode" value="review" /> Ôn lại
+            </label>
+          </div>
+          <!-- Các checkbox khác giữ nguyên -->
+
+          <!-- Thêm script inline để toggle options -->
+          <script>
+            document
+              .getElementById("hoctuvungCheckbox")
+              .addEventListener("change", (e) => {
+                document.getElementById("hoctuvungOptions").style.display = e
+                  .target.checked
+                  ? "block"
+                  : "none";
+              });
+          </script>
           <label>
             <input type="checkbox" value="luyennoi" /> Luyện nói tiếng Anh
           </label>
