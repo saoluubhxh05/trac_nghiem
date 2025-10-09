@@ -27,6 +27,7 @@ const XLSX_URL =
 async function loadXLSX() {
   if (!window.XLSX) {
     await import(XLSX_URL);
+    console.log("XLSX library loaded successfully.");
   }
 }
 
@@ -34,6 +35,17 @@ const popupImport = document.getElementById("popupImport");
 const popupFile = document.getElementById("popupFile");
 const selectionList = document.getElementById("selectionList");
 const previewBody = document.getElementById("previewBody");
+
+if (!popupImport || !popupFile || !selectionList || !previewBody) {
+  console.error("❌ Lỗi: Một hoặc nhiều element DOM không tìm thấy:", {
+    popupImport,
+    popupFile,
+    selectionList,
+    previewBody,
+  });
+} else {
+  console.log("DOM elements loaded successfully.");
+}
 
 popupImport.addEventListener("click", async () => {
   const file = popupFile.files[0];
@@ -49,37 +61,56 @@ popupImport.addEventListener("click", async () => {
     const data = new Uint8Array(e.target.result);
     const workbook = XLSX.read(data, { type: "array" });
     const sheet = workbook.Sheets[workbook.SheetNames[0]];
-    const json = XLSX.utils.sheet_to_json(sheet, { defval: "" });
+    const json = XLSX.utils.sheet_to_json(sheet, { defval: "", header: 1 }); // Lấy tất cả row, bao gồm header
 
-    if (!json.length || !json[0]["Phần"]) {
+    console.log("Raw JSON from Excel:", json); // Debug: Kiểm tra toàn bộ dữ liệu
+
+    if (!json.length || !json[0].includes("Phần")) {
       alert("❌ Không tìm thấy cột 'Phần' trong file Excel.");
       return;
     }
 
-    const partName = json[0]["Phần"].toString().trim();
+    const headers = json[0]; // Lấy header từ hàng đầu tiên
+    const partIndex = headers.indexOf("Phần");
+    if (partIndex === -1) {
+      alert("❌ Không tìm thấy cột 'Phần' trong header.");
+      return;
+    }
+
+    const partName = json[1][partIndex]?.toString().trim() || "default"; // Lấy giá trị Phần từ hàng 2
     const collectionName = `selection_${partName.replace(/\s+/g, "_")}`;
 
-    const raw = json.map((row, index) => {
-      console.log("Row data:", row); // Debug: Kiểm tra toàn bộ row
-      const tuVungRaw = row["Từ vựng"] || row["tuvung"] || row["TỪ VỰNG"] || ""; // Linh hoạt header
+    const raw = json.slice(1).map((row, index) => {
+      const rowObj = {};
+      headers.forEach((header, i) => {
+        rowObj[header.trim()] = row[i] || ""; // Map header với giá trị, loại bỏ khoảng trắng
+      });
+
+      console.log(`Row ${index + 2} data:`, rowObj); // Debug: Kiểm tra từng row sau map
+
+      const tuVungRaw =
+        rowObj["Từ vựng"] || rowObj["tuvung"] || rowObj["TỪ VỰNG"] || "";
       const dichTuVungRaw =
-        row["Dịch từ vựng"] || row["dichtuvung"] || row["DỊCH TỪ VỰNG"] || ""; // Linh hoạt header
+        rowObj["Dịch từ vựng"] ||
+        rowObj["dichtuvung"] ||
+        rowObj["DỊCH TỪ VỰNG"] ||
+        "";
 
       const tuVung = tuVungRaw
         .split(";")
         .map((t) => t.trim())
-        .filter((t) => t.length > 0);
+        .filter((t) => t); // Giữ nguyên filter
       const dichTuVung = dichTuVungRaw
         .split(";")
         .map((d) => d.trim())
-        .filter((d) => d.length > 0);
+        .filter((d) => d);
 
       if (
         tuVung.length !== dichTuVung.length &&
         (tuVung.length > 0 || dichTuVung.length > 0)
       ) {
         console.warn(
-          `Row ${index + 1}: Số lượng từ vựng (${
+          `Row ${index + 2}: Số lượng từ vựng (${
             tuVung.length
           }) không khớp với dịch (${dichTuVung.length})`
         );
@@ -87,25 +118,27 @@ popupImport.addEventListener("click", async () => {
 
       return {
         stt: index + 1,
-        monHoc: row["Môn học"] || "",
-        loai: row["Loại"] || "",
-        chuDe: row["Chủ đề"] || "",
+        monHoc: rowObj["Môn học"] || "",
+        loai: rowObj["Loại"] || "",
+        chuDe: rowObj["Chủ đề"] || "",
         cauHoi:
-          row["Câu trắc nghiệm"] || row["Dịch sang tiếng Việt Câu hỏi"] || "",
-        dapAn: row["Đáp án đúng"] || "",
-        dichDapAn: row["Dịch đáp án"] || "",
+          rowObj["Câu trắc nghiệm"] ||
+          rowObj["Dịch sang tiếng Việt Câu hỏi"] ||
+          "",
+        dapAn: rowObj["Đáp án đúng"] || "",
+        dichDapAn: rowObj["Dịch đáp án"] || "",
         phuongAn1:
-          row["Phương án 1"] || row["Các phương án"]?.split("#")[0] || "",
+          rowObj["Phương án 1"] || rowObj["Các phương án"]?.split("#")[0] || "",
         phuongAn2:
-          row["Phương án 2"] || row["Các phương án"]?.split("#")[1] || "",
+          rowObj["Phương án 2"] || rowObj["Các phương án"]?.split("#")[1] || "",
         phuongAn3:
-          row["Phương án 3"] || row["Các phương án"]?.split("#")[2] || "",
+          rowObj["Phương án 3"] || rowObj["Các phương án"]?.split("#")[2] || "",
         phuongAn4:
-          row["Phương án 4"] || row["Các phương án"]?.split("#")[3] || "",
-        tenAnh: row["tenAnh"] || "",
-        language: row["Ngôn ngữ"] || "vi",
-        tuVung: tuVung, // Dùng array đã parse
-        dichTuVung: dichTuVung, // Dùng array đã parse
+          rowObj["Phương án 4"] || rowObj["Các phương án"]?.split("#")[3] || "",
+        tenAnh: rowObj["tenAnh"] || "",
+        language: rowObj["Ngôn ngữ"] || "vi",
+        tuVung: tuVung,
+        dichTuVung: dichTuVung,
       };
     });
 
@@ -113,10 +146,11 @@ popupImport.addEventListener("click", async () => {
       (q) => q.monHoc && q.loai && q.chuDe && q.cauHoi && q.dapAn
     );
 
+    console.log("Processed questions:", questions); // Debug: Kiểm tra dữ liệu sau filter
+
     const colRef = collection(db, collectionName);
 
     try {
-      // Xóa toàn bộ nếu đã tồn tại
       const existingDocs = await getDocs(colRef);
       if (!existingDocs.empty) {
         const confirmDelete = confirm(
@@ -129,10 +163,8 @@ popupImport.addEventListener("click", async () => {
         );
       }
 
-      // Import mới
       await Promise.all(questions.map((q) => addDoc(colRef, q)));
 
-      // Ghi metadata
       const metaSnap = await getDocs(collection(db, "selectionMeta"));
       const existedMeta = metaSnap.docs.find(
         (d) => d.data().name === collectionName
@@ -150,7 +182,9 @@ popupImport.addEventListener("click", async () => {
       loadSelections();
     } catch (err) {
       console.error("❌ Lỗi khi import:", err);
-      alert("❌ Có lỗi xảy ra khi import dữ liệu.");
+      alert(
+        "❌ Có lỗi xảy ra khi import dữ liệu. Kiểm tra Console để biết chi tiết."
+      );
     }
   };
 
@@ -209,10 +243,8 @@ async function previewSelection(colName) {
       <td>${q.chuDe}</td>
       <td>${q.cauHoi}</td>
       <td>${q.dapAn}</td>
-      <td>${q.tuVung.join("; ")}</td>  <!-- Thêm cột từ vựng để preview -->
-      <td>${q.dichTuVung.join(
-        "; "
-      )}</td>  <!-- Thêm cột dịch từ vựng để preview -->
+      <td>${q.tuVung ? q.tuVung.join("; ") : "Không có"}</td>
+      <td>${q.dichTuVung ? q.dichTuVung.join("; ") : "Không có"}</td>
     `;
     previewBody.appendChild(r);
   });
