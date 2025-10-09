@@ -36,7 +36,6 @@ function getUniqueValues(field, filterFn = () => true) {
 
 function updateSelectOptions(selectId, options) {
   const select = document.getElementById(selectId);
-  if (!select) return;
   select.innerHTML = "";
 
   if (options.length === 0) {
@@ -69,11 +68,10 @@ function updateSelectOptions(selectId, options) {
 }
 
 function renderChuDeTheoBoLoc() {
-  const monHoc = document.getElementById("monHoc")?.value || "";
-  const loai = document.getElementById("loai")?.value || "";
-  const language = document.getElementById("ngonNgu")?.value || "";
+  const monHoc = document.getElementById("monHoc").value;
+  const loai = document.getElementById("loai").value;
+  const language = document.getElementById("ngonNgu").value;
   const chuDeContainer = document.getElementById("chuDeContainer");
-  if (!chuDeContainer) return;
   chuDeContainer.innerHTML = "";
 
   const chuDeMap = new Map();
@@ -119,70 +117,62 @@ document.addEventListener("DOMContentLoaded", async () => {
   await loadSelectionList();
 
   const saved = JSON.parse(localStorage.getItem("quizSettings") || "{}");
-  const danhSachSelect = document.getElementById("danhSach");
-  if (saved.danhSach && danhSachSelect) {
-    danhSachSelect.value = saved.danhSach;
-    danhSachSelect.dispatchEvent(new Event("change"));
+  if (saved.danhSach) {
+    document.getElementById("danhSach").value = saved.danhSach;
+    document.getElementById("danhSach").dispatchEvent(new Event("change"));
   }
 
-  if (danhSachSelect) {
-    danhSachSelect.addEventListener("change", async () => {
-      const ds = danhSachSelect.value;
-      if (!ds) return;
+  document.getElementById("danhSach").addEventListener("change", async () => {
+    const ds = document.getElementById("danhSach").value;
+    if (!ds) return;
 
-      const collectionName = `selection_${ds}`;
-      const snapshot = await getDocs(collection(db, collectionName));
-      questions = snapshot.docs.map((doc) => doc.data());
+    const collectionName = `selection_${ds}`;
+    const snapshot = await getDocs(collection(db, collectionName));
+    questions = snapshot.docs.map((doc) => doc.data());
 
-      if (!questions.length) {
-        alert("Không có dữ liệu trong danh sách này.");
-        return;
+    if (!questions.length) {
+      alert("Không có dữ liệu trong danh sách này.");
+      return;
+    }
+
+    updateSelectOptions("ngonNgu", getUniqueValues("language"));
+    updateSelectOptions("monHoc", getUniqueValues("monHoc"));
+    updateSelectOptions("loai", getUniqueValues("loai"));
+
+    // Gán lại các lựa chọn từ localStorage nếu có
+    const saved = JSON.parse(localStorage.getItem("quizSettings") || "{}");
+    if (saved.language)
+      document.getElementById("ngonNgu").value = saved.language;
+    if (saved.monHoc) document.getElementById("monHoc").value = saved.monHoc;
+    if (saved.loai) document.getElementById("loai").value = saved.loai;
+
+    renderChuDeTheoBoLoc();
+
+    // Khôi phục chủ đề và số câu
+    setTimeout(() => {
+      if (saved.chuDe) {
+        saved.chuDe.forEach(({ chuDe, soCau }) => {
+          const chk = [...document.querySelectorAll(".chu-de-checkbox")].find(
+            (c) => c.value === chuDe
+          );
+          if (chk) {
+            chk.checked = true;
+            const input =
+              chk.parentElement.parentElement.querySelector(".so-cau-input");
+            if (input) input.value = soCau;
+          }
+        });
       }
-
-      updateSelectOptions("ngonNgu", getUniqueValues("language"));
-      updateSelectOptions("monHoc", getUniqueValues("monHoc"));
-      updateSelectOptions("loai", getUniqueValues("loai"));
-
-      const saved = JSON.parse(localStorage.getItem("quizSettings") || "{}");
-      if (saved.language)
-        document.getElementById("ngonNgu").value = saved.language;
-      if (saved.monHoc) document.getElementById("monHoc").value = saved.monHoc;
-      if (saved.loai) document.getElementById("loai").value = saved.loai;
-
-      renderChuDeTheoBoLoc();
-
-      setTimeout(() => {
-        if (saved.chuDe) {
-          saved.chuDe.forEach(({ chuDe, soCau }) => {
-            const chk = [...document.querySelectorAll(".chu-de-checkbox")].find(
-              (c) => c.value === chuDe
-            );
-            if (chk) {
-              chk.checked = true;
-              const input =
-                chk.parentElement.parentElement.querySelector(".so-cau-input");
-              if (input) input.value = soCau;
-            }
-          });
-        }
-      }, 100);
-    });
-  }
-
-  ["ngonNgu", "monHoc", "loai"].forEach((id) => {
-    const select = document.getElementById(id);
-    if (select) select.addEventListener("change", renderChuDeTheoBoLoc);
+    }, 100);
   });
 
-  // Thêm event cho hoctuvungCheckbox
-  const hoctuvungCheckbox = document.getElementById("hoctuvungCheckbox");
-  const hoctuvungMode = document.getElementById("hoctuvungMode");
-  if (hoctuvungCheckbox && hoctuvungMode) {
-    hoctuvungCheckbox.addEventListener("change", () => {
-      hoctuvungMode.style.display = hoctuvungCheckbox.checked ? "block" : "none";
-    });
-  }
+  ["ngonNgu", "monHoc", "loai"].forEach((id) => {
+    document
+      .getElementById(id)
+      .addEventListener("change", renderChuDeTheoBoLoc);
+  });
 
+  // Khôi phục loại bài tập và thứ tự nếu có
   if (saved.loaiBaiTapList) {
     saved.loaiBaiTapList.forEach((val) => {
       const el = document.querySelector(
@@ -193,135 +183,119 @@ document.addEventListener("DOMContentLoaded", async () => {
   }
   if (saved.thuTu) document.getElementById("thuTu").value = saved.thuTu;
 
-  const batDauBtn = document.getElementById("batDauBtn");
-  if (batDauBtn) {
-    batDauBtn.addEventListener("click", () => {
-      const monHoc = document.getElementById("monHoc")?.value || "";
-      const loai = document.getElementById("loai")?.value || "";
-      const language = document.getElementById("ngonNgu")?.value || "";
-      const thuTu = document.getElementById("thuTu")?.value || "";
-      const danhSach = document.getElementById("danhSach")?.value || "";
+  document.getElementById("batDauBtn").addEventListener("click", () => {
+    const monHoc = document.getElementById("monHoc").value;
+    const loai = document.getElementById("loai").value;
+    const language = document.getElementById("ngonNgu").value;
+    const thuTu = document.getElementById("thuTu").value;
+    const danhSach = document.getElementById("danhSach").value;
 
-      const loaiBaiTapEls = document.querySelectorAll(
-        "#loaiBaiTapContainer input:checked"
-      );
-      const loaiBaiTapList = Array.from(loaiBaiTapEls).map((el) => el.value);
-      if (!loaiBaiTapList.length) {
-        alert("Vui lòng chọn ít nhất 1 loại bài tập.");
-        return;
-      }
+    const loaiBaiTapEls = document.querySelectorAll(
+      "#loaiBaiTapContainer input:checked"
+    );
+    const loaiBaiTapList = Array.from(loaiBaiTapEls).map((el) => el.value);
+    if (!loaiBaiTapList.length) {
+      alert("Vui lòng chọn ít nhất 1 loại bài tập.");
+      return;
+    }
 
-      const chuDeCheckboxes = document.querySelectorAll(
-        ".chu-de-checkbox:checked"
-      );
-      if (!chuDeCheckboxes.length) {
-        alert("Vui lòng chọn ít nhất 1 chủ đề!");
-        return;
-      }
+    const chuDeCheckboxes = document.querySelectorAll(
+      ".chu-de-checkbox:checked"
+    );
+    if (!chuDeCheckboxes.length) {
+      alert("Vui lòng chọn ít nhất 1 chủ đề!");
+      return;
+    }
 
-      const savedSettings = {
-        danhSach,
-        monHoc,
-        loai,
-        language,
-        loaiBaiTapList,
-        thuTu,
-        chuDe: Array.from(chuDeCheckboxes).map((chk) => {
-          const chuDe = chk.value;
-          const soCau = parseInt(
-            chk.parentElement.parentElement.querySelector(".so-cau-input").value
-          );
-          return { chuDe, soCau };
-        }),
-      };
-      localStorage.setItem("quizSettings", JSON.stringify(savedSettings));
-
-      let selectedQuestions = [];
-      chuDeCheckboxes.forEach((chk) => {
+    const savedSettings = {
+      danhSach,
+      monHoc,
+      loai,
+      language,
+      loaiBaiTapList,
+      thuTu,
+      chuDe: Array.from(chuDeCheckboxes).map((chk) => {
         const chuDe = chk.value;
-        const input =
-          chk.parentElement.parentElement.querySelector(".so-cau-input");
-        const soCau = parseInt(input.value);
+        const soCau = parseInt(
+          chk.parentElement.parentElement.querySelector(".so-cau-input").value
+        );
+        return { chuDe, soCau };
+      }),
+    };
+    localStorage.setItem("quizSettings", JSON.stringify(savedSettings));
 
-        let filtered;
-        if (loaiBaiTapList.includes("combo")) {
-          filtered = questions.filter(
-            (q) =>
-              q.monHoc === monHoc && q.chuDe === chuDe && q.language === language
-          );
-        } else if (loaiBaiTapList.includes("hoctuvung")) {
-          filtered = questions.filter(
-            (q) =>
-              q.monHoc === monHoc &&
-              q.loai === loai &&
-              q.chuDe === chuDe &&
-              q.language === language &&
-              (q.tuVung1 || q.tuVung2 || q.tuVung3 || q.tuVung4 || q.tuVung5 || q.tuVung6)
-          );
-        } else {
-          filtered = questions.filter(
-            (q) =>
-              q.monHoc === monHoc &&
-              q.loai === loai &&
-              q.chuDe === chuDe &&
-              q.language === language
-          );
-        }
+    let selectedQuestions = [];
+    chuDeCheckboxes.forEach((chk) => {
+      const chuDe = chk.value;
+      const input =
+        chk.parentElement.parentElement.querySelector(".so-cau-input");
+      const soCau = parseInt(input.value);
 
-        if (thuTu === "ngaunhien") {
-          filtered = shuffle(filtered);
-        } else {
-          filtered = filtered.sort((a, b) => (a.stt || 0) - (b.stt || 0));
-        }
-
-        selectedQuestions = selectedQuestions.concat(filtered.slice(0, soCau));
-      });
-
-      if (!selectedQuestions.length) {
-        alert("Không tìm thấy câu hỏi phù hợp.");
-        return;
-      }
-
-      localStorage.setItem(
-        "selectedQuestions",
-        JSON.stringify(selectedQuestions)
-      );
-
-      if (loaiBaiTapList.length === 1 && loaiBaiTapList[0] === "translate") {
-        window.location.href =
-          language === "zh" ? "translate-zh.html" : "translate-en.html";
-      } else if (loaiBaiTapList.includes("hoctuvung")) {
-        const mode =
-          document.querySelector('input[name="hoctuvungMode"]:checked')?.value ||
-          "hocmoi";
-        localStorage.setItem("tuvungMode", mode);
-        window.location.href = "hoctuvung.html";
-      } else if (loaiBaiTapList.includes("speaking")) {
-        window.location.href = "speaking.html";
-      } else if (loaiBaiTapList.includes("luyennoi")) {
-        window.location.href = "luyen_noi.html";
-      } else if (loaiBaiTapList.includes("combo")) {
-        window.location.href = "combo.html";
-      } else if (loaiBaiTapList.includes("memorize")) {
-        window.location.href = "memorize.html";
+      let filtered;
+      if (loaiBaiTapList.includes("combo")) {
+        filtered = questions.filter(
+          (q) =>
+            q.monHoc === monHoc && q.chuDe === chuDe && q.language === language
+        );
       } else {
-        window.location.href = "index.html";
+        filtered = questions.filter(
+          (q) =>
+            q.monHoc === monHoc &&
+            q.loai === loai &&
+            q.chuDe === chuDe &&
+            q.language === language
+        );
       }
-    });
-  }
 
-  const resetSettingsBtn = document.getElementById("resetSettingsBtn");
-  if (resetSettingsBtn) {
-    resetSettingsBtn.addEventListener("click", () => {
-      if (confirm("Bạn có chắc muốn xoá toàn bộ thiết lập cũ không?")) {
-        localStorage.removeItem("quizSettings");
-        localStorage.removeItem("selectedQuestions");
-        localStorage.removeItem("loaiBaiTapList");
-        localStorage.removeItem("currentLoaiBaiTapIndex");
-        localStorage.removeItem("tuvungMode"); // Thêm: Xóa tuvungMode
-        alert("✅ Đã xoá thiết lập. Trang sẽ được tải lại.");
-        location.reload();
+      if (thuTu === "ngaunhien") {
+        filtered = shuffle(filtered);
+      } else {
+        filtered = filtered.sort((a, b) => (a.stt || 0) - (b.stt || 0));
       }
+
+      selectedQuestions = selectedQuestions.concat(filtered.slice(0, soCau));
     });
+
+    if (!selectedQuestions.length) {
+      alert("Không tìm thấy câu hỏi phù hợp.");
+      return;
+    }
+
+    localStorage.setItem(
+      "selectedQuestions",
+      JSON.stringify(selectedQuestions)
+    );
+
+    if (loaiBaiTapList.length === 1 && loaiBaiTapList[0] === "translate") {
+      window.location.href =
+        language === "zh" ? "translate-zh.html" : "translate-en.html";
+    } else if (loaiBaiTapList.includes("hoctuvung")) {
+      const mode =
+        document.querySelector('input[name="hoctuvungMode"]:checked')?.value ||
+        "new";
+      localStorage.setItem("hoctuvungMode", mode);
+      window.location.href = "hoctuvung.html";
+    } else if (loaiBaiTapList.includes("speaking")) {
+      // Thêm mới: Điều hướng đến speaking.html
+      window.location.href = "speaking.html";
+    } else if (loaiBaiTapList.includes("luyennoi")) {
+      window.location.href = "luyen_noi.html";
+    } else if (loaiBaiTapList.includes("combo")) {
+      window.location.href = "combo.html";
+    } else if (loaiBaiTapList.includes("memorize")) {
+      window.location.href = "memorize.html";
+    } else {
+      window.location.href = "index.html";
+    }
+  });
+});
+document.getElementById("resetSettingsBtn").addEventListener("click", () => {
+  if (confirm("Bạn có chắc muốn xoá toàn bộ thiết lập cũ không?")) {
+    localStorage.removeItem("quizSettings");
+    localStorage.removeItem("selectedQuestions");
+    localStorage.removeItem("loaiBaiTapList");
+    localStorage.removeItem("currentLoaiBaiTapIndex");
+    alert("✅ Đã xoá thiết lập. Trang sẽ được tải lại.");
+    location.reload();
   }
 });
